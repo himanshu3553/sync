@@ -21,7 +21,7 @@ function GoogleSubmit() {
     <Button
       type="submit"
       variant="outline"
-      className="mb-4 w-full gap-2.5 bg-white text-ink"
+      className="mb-4 h-11 w-full gap-2.5 bg-white text-ink"
       disabled={pending}
     >
       <GoogleIcon />

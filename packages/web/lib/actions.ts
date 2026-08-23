@@ -71,11 +71,16 @@ export async function signInAction(_prev: string | undefined, formData: FormData
   // Friendly message for the correct-password-but-unverified case (the authorize() backstop
   // would otherwise surface it as a generic credentials failure). Only when the password is
   // right — an attacker probing emails still sees the generic error below.
+  const user = await prisma.user.findUnique({
+    where: { email: parsed.data.email },
+    select: { passwordHash: true, emailVerified: true, accounts: { select: { provider: true } } },
+  });
+  // A Google-only account has no password to check: say so instead of "invalid password", and
+  // point at the way in (user decision 2026-08-23; the small enumeration cost is accepted).
+  if (user && !user.passwordHash && user.accounts.some((a) => a.provider === 'google')) {
+    return 'This account uses Google sign-in. Use “Continue with Google” method or Reset your password via “Forgot password”.';
+  }
   if (emailEnabled) {
-    const user = await prisma.user.findUnique({
-      where: { email: parsed.data.email },
-      select: { passwordHash: true, emailVerified: true },
-    });
     if (user?.passwordHash && !user.emailVerified && (await verifyPassword(parsed.data.password, user.passwordHash))) {
       return 'Please verify your email first — check your inbox for the verification link (or resend it from the link below).';
     }
@@ -110,8 +115,10 @@ export async function requestPasswordResetAction(_prev: string | undefined, form
   if (!emailRequestAllowed(email, await clientIp())) {
     return 'Too many requests. Please wait a few minutes and try again.';
   }
-  const user = await prisma.user.findUnique({ where: { email }, select: { passwordHash: true } });
-  if (user?.passwordHash) {
+  // Any existing account may set a password — including a Google-only one, for which "reset"
+  // is how it gets its first password (and with it the email/password way in).
+  const user = await prisma.user.findUnique({ where: { email }, select: { id: true } });
+  if (user) {
     const token = await mintAuthToken('reset', email);
     await sendPasswordResetEmail(email, token);
   }
