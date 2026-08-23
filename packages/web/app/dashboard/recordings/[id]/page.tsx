@@ -189,7 +189,7 @@ export default async function RecordingDetailPage({
                 : 'Workflows appear once processing finishes.'}
           </p>
           <Button asChild size="sm" className="shrink-0">
-            <Link href="/dashboard/kb">
+            <Link href={`/dashboard/kb?recording=${source.id}`}>
               Review &amp; approve workflows
               <ArrowUpRight className="h-4 w-4" />
             </Link>

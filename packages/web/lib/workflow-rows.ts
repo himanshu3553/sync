@@ -26,7 +26,7 @@ export function toWorkflowRows(
     segmentIndex: c.segmentIndex,
     segmentTitle: c.segmentTitle,
     itemCount: c.itemCount,
-    sourceTitle: c.appBaseUrl || 'recording',
+    sourceTitle: c.sourceTitle,
     description: c.description,
     copilotApproved: c.copilotApproved,
     inactiveReason: c.inactiveReason,

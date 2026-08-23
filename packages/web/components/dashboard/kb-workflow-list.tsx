@@ -12,6 +12,7 @@ import { DuplicateChip, type OverlapView } from '@/components/dashboard/duplicat
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
+import { RecordingFilter, RecordingFilterChips } from '@/components/dashboard/recording-filter';
 import {
   Dialog,
   DialogContent,
@@ -52,8 +53,11 @@ type Filter = 'all' | 'approved' | 'pending' | 'replaced';
 export function KbWorkflowList({
   workflows,
   readOnly = false,
+  initialRecordingIds = [],
 }: {
   workflows: WorkflowRow[];
+  /** Recordings to pre-tick in the filter (a recording's page links here with its own id). */
+  initialRecordingIds?: string[];
   /** A recording's own page shows its workflows to READ, not to approve: no awaiting-approval
    *  strip, no search, no switch — the status pill stays, approval happens on the KB or the
    *  workflow's page. The Knowledge Base page never sets this. */
@@ -61,6 +65,10 @@ export function KbWorkflowList({
 }) {
   const [filter, setFilter] = useState<Filter>('all');
   const [q, setQ] = useState('');
+  /** Recording filter — the recordings the founder ticked. Empty (the default) = no filtering. */
+  const [selected, setSelected] = useState<Set<string>>(
+    () => new Set(initialRecordingIds.filter((id) => workflows.some((w) => w.sourceId === id))),
+  );
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [confirmAll, setConfirmAll] = useState(false);
@@ -85,6 +93,15 @@ export function KbWorkflowList({
     [workflows, pendingRows],
   );
 
+  // Every recording represented in the list, in list (= server) order, for the filter menu.
+  const recordings = useMemo(() => {
+    const seen = new Map<string, string>();
+    for (const w of workflows) if (!seen.has(w.sourceId)) seen.set(w.sourceId, w.sourceTitle);
+    return [...seen].map(([id, title]) => ({ id, title }));
+  }, [workflows]);
+
+  const filtering = selected.size > 0;
+
   // Server order kept on purpose: grouped by recording, in the order the steps were recorded — a
   // founder reads the list the way they made it, not re-shuffled by approval state.
   const visible = workflows.filter((w) => {
@@ -92,6 +109,7 @@ export function KbWorkflowList({
     if (filter === 'approved' && !w.copilotApproved) return false;
     if (filter === 'pending' && (w.copilotApproved || w.inactiveReason)) return false;
     if (filter === 'replaced' && !w.inactiveReason) return false;
+    if (filtering && !selected.has(w.sourceId)) return false;
     if (
       q &&
       !`${w.segmentTitle} ${w.sourceTitle}`.toLowerCase().includes(q.toLowerCase())
@@ -249,17 +267,22 @@ export function KbWorkflowList({
           ))}
         </div>
         {!readOnly && (
-        <div className="relative mb-2 w-full sm:w-56">
-          <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-faint" />
-          <Input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search workflows"
-            className="h-8 pl-8"
-          />
-        </div>
+          <div className="mb-2 flex w-full items-center gap-2 sm:w-auto">
+            <RecordingFilter recordings={recordings} selected={selected} onChange={setSelected} />
+            <div className="relative w-full sm:w-56">
+              <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-faint" />
+              <Input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Search workflows"
+                className="h-8 pl-8"
+              />
+            </div>
+          </div>
         )}
       </div>
+
+      <RecordingFilterChips recordings={recordings} selected={selected} onChange={setSelected} />
 
       {visible.length === 0 ? (
         <div className="rounded-card border bg-card px-4 py-10 text-center text-sm text-muted-foreground">
@@ -398,3 +421,4 @@ export function KbWorkflowList({
     </div>
   );
 }
+

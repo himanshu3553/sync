@@ -23,12 +23,15 @@ type Tab = 'workflows' | 'product';
 export default async function KnowledgeBasePage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; recording?: string }>;
 }) {
   const ctx = await getCurrentWorkspace();
   if (!ctx) redirect('/signin');
-  const raw = (await searchParams).tab;
-  const tab: Tab = raw === 'product' ? 'product' : 'workflows';
+  const params = await searchParams;
+  const tab: Tab = params.tab === 'product' ? 'product' : 'workflows';
+  // `?recording=<id>` — a recording's own page links here with its filter pre-applied, so the
+  // founder lands on exactly the workflows they came to review. The lists ignore an unknown id.
+  const initialRecordingIds = params.recording ? [params.recording] : [];
 
   const [candidates, overlaps, productPages] = await Promise.all([
     listCandidates(ctx.workspace.id),
@@ -110,7 +113,7 @@ export default async function KnowledgeBasePage({
               <div className="space-y-3.5">
                 <DuplicateWorkflows overlaps={overlapViews} />
                 {workflows.length > 0 ? (
-                  <KbWorkflowList workflows={workflows} />
+                  <KbWorkflowList workflows={workflows} initialRecordingIds={initialRecordingIds} />
                 ) : (
                   <div className="rounded-card border bg-card px-4 py-10 text-center text-sm text-muted-foreground">
                     No workflows yet — record a session and they will be distilled here.
@@ -119,7 +122,7 @@ export default async function KnowledgeBasePage({
               </div>
             ) : /* AIL slice 2 — what the product IS, beside how things are DONE. */
             productPages.length > 0 ? (
-              <ProductKnowledgeList pages={productPages} />
+              <ProductKnowledgeList pages={productPages} initialRecordingIds={initialRecordingIds} />
             ) : (
               <div className="rounded-card border bg-card px-4 py-10 text-center">
                 <p className="text-sm text-muted-foreground">

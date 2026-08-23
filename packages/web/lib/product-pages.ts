@@ -1,4 +1,5 @@
 import { prisma } from '@flowbuddy/db';
+import { recordingName } from './recordings';
 
 /**
  * AIL slice 2 — the KB page's read of PRODUCT PAGES (docs/build/application-intelligence.md).
@@ -60,10 +61,10 @@ export async function listProductPages(workspaceId: string): Promise<ProductPage
   const sources = sourceIds.length
     ? await prisma.knowledgeSource.findMany({
         where: { id: { in: sourceIds } },
-        select: { id: true, title: true, appBaseUrl: true },
+        select: { id: true, title: true, generatedTitle: true, appBaseUrl: true },
       })
     : [];
-  const titleBySource = new Map(sources.map((s) => [s.id, s.title || s.appBaseUrl || 'a recording']));
+  const titleBySource = new Map(sources.map((s) => [s.id, recordingName(s)]));
 
   const views = pages.map((p) => ({
     id: p.id,

@@ -1,5 +1,6 @@
 import { prisma } from '@flowbuddy/db';
 import { approvedSegmentKeys, inactiveWorkflows } from './copilot-approvals';
+import { recordingName } from './recordings';
 
 /** A workflow candidate = one persisted segment (Option C) — the unit the founder approves for
  *  the copilot (P1-M5). Server-only.
@@ -9,7 +10,8 @@ export interface Candidate {
   /** P3-M1 — the workflow's durable identity. What every mutation keys on. */
   workflowId: string;
   sourceId: string;
-  appBaseUrl: string | null;
+  /** The recording's display name, via the one `recordingName` resolver. */
+  sourceTitle: string;
   segmentIndex: number;
   segmentTitle: string;
   itemCount: number;
@@ -60,9 +62,9 @@ export async function listCandidates(workspaceId: string, sourceId?: string): Pr
   const sourceIds = [...new Set([...grouped.values()].map((c) => c.sourceId))];
   const sources = await prisma.knowledgeSource.findMany({
     where: { id: { in: sourceIds } },
-    select: { id: true, appBaseUrl: true },
+    select: { id: true, title: true, generatedTitle: true, appBaseUrl: true },
   });
-  const appById = new Map(sources.map((s) => [s.id, s.appBaseUrl]));
+  const nameById = new Map(sources.map((s) => [s.id, recordingName(s)]));
   // The description lives on `Workflow`, not `KnowledgeItem` — which is why the approval surfaces
   // never had it. Scoped by workspaceId as well as id: the ids come from this workspace's items, so
   // it is redundant, but every tenant read in here states its own scope rather than inheriting one.
@@ -83,7 +85,7 @@ export async function listCandidates(workspaceId: string, sourceId?: string): Pr
       const retired = inactive.get(key);
       return {
         ...c,
-        appBaseUrl: appById.get(c.sourceId) ?? null,
+        sourceTitle: nameById.get(c.sourceId) ?? '(unknown app)',
         description: descriptionById.get(c.workflowId) ?? null,
         copilotApproved: approved.has(key),
         inactiveReason: retired?.reason ?? null,

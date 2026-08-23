@@ -15,6 +15,7 @@ import type { ProductPageView } from '@/lib/product-pages';
 import { toast } from '@/components/ui/toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { RecordingFilter, RecordingFilterChips } from '@/components/dashboard/recording-filter';
 import { Switch } from '@/components/ui/switch';
 import {
   Dialog,
@@ -36,11 +37,25 @@ import {
  */
 type Filter = 'all' | 'approved' | 'pending' | 'retired';
 
-export function ProductKnowledgeList({ pages }: { pages: ProductPageView[] }) {
+export function ProductKnowledgeList({
+  pages,
+  initialRecordingIds = [],
+}: {
+  pages: ProductPageView[];
+  /** Recordings to pre-tick in the filter (a recording's page links here with its own id). */
+  initialRecordingIds?: string[];
+}) {
   const [openId, setOpenId] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>('all');
   const [q, setQ] = useState('');
+  /** Recording filter — the recordings the founder ticked. Empty (the default) = no filtering. */
+  const [selected, setSelected] = useState<Set<string>>(
+    () =>
+      new Set(
+        initialRecordingIds.filter((id) => pages.some((p) => p.provenance.some((e) => e.sourceId === id))),
+      ),
+  );
   const [confirmAll, setConfirmAll] = useState(false);
   const [pending, start] = useTransition();
   const router = useRouter();
@@ -71,7 +86,17 @@ export function ProductKnowledgeList({ pages }: { pages: ProductPageView[] }) {
     [pages],
   );
 
+  // Every recording any page cites, in first-seen order, for the filter menu.
+  const recordings = useMemo(() => {
+    const seen = new Map<string, string>();
+    for (const p of pages)
+      for (const e of p.provenance) if (!seen.has(e.sourceId)) seen.set(e.sourceId, e.recordingTitle);
+    return [...seen].map(([id, title]) => ({ id, title }));
+  }, [pages]);
+
   const visible = pages.filter((p) => {
+    // A page is derived from narration across recordings — it matches if ANY of them is ticked.
+    if (selected.size > 0 && !p.provenance.some((e) => selected.has(e.sourceId))) return false;
     if (filter === 'approved' && !p.live) return false;
     if (filter === 'pending' && !((!p.live && !p.everApproved) || p.pendingContent)) return false;
     if (filter === 'retired' && !(p.everApproved && !p.live)) return false;
@@ -210,16 +235,21 @@ export function ProductKnowledgeList({ pages }: { pages: ProductPageView[] }) {
             </button>
           ))}
         </div>
-        <div className="relative mb-2 w-full sm:w-56">
-          <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-faint" />
-          <Input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search product knowledge"
-            className="h-8 pl-8"
-          />
+        <div className="mb-2 flex w-full items-center gap-2 sm:w-auto">
+          <RecordingFilter recordings={recordings} selected={selected} onChange={setSelected} />
+          <div className="relative w-full sm:w-56">
+            <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-faint" />
+            <Input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search product knowledge"
+              className="h-8 pl-8"
+            />
+          </div>
         </div>
       </div>
+
+      <RecordingFilterChips recordings={recordings} selected={selected} onChange={setSelected} />
 
       {visible.length === 0 ? (
         <div className="rounded-card border bg-card px-4 py-10 text-center text-sm text-muted-foreground">

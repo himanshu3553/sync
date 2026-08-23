@@ -233,7 +233,7 @@ The builder console — the only place a human drives the system: connect the re
 
 - **Home.** An onboarding checklist — install the recorder → record your product → approve workflows → embed the copilot — with "How FlowBuddy works" and "How to record" guides. Once live: copilot health, pending approvals, and "record this next".
 - **Recordings.** Every capture with its status, thumbnails and the derived description; a detail page with replay, transcript, notices (a degraded build, a lost edit), rename, delete, reprocess and Reorganize.
-- **Knowledge Base.** Workflows as the assistant sees them — title, description, steps with screenshots and a highlight lightbox — with the approve toggle, the AI Agent card (run switch, eligibility, run summary), duplicate warnings folded into one box, the Product knowledge section with its pending updates and its own Approve All, the "Replaced" view, and Video/SOP and Analytics tabs on each workflow.
+- **Knowledge Base.** Workflows as the assistant sees them — title, description, steps with screenshots and a highlight lightbox — with the approve toggle, a filter-by-recording on both lists (pre-applied when arriving from a recording's page), the AI Agent card (run switch, eligibility, run summary), duplicate warnings folded into one box, the Product knowledge section with its pending updates and its own Approve All, the "Replaced" view, and Video/SOP and Analytics tabs on each workflow.
 - **Copilot.** Everything in [§4](#4-going-live), with the live preview.
 - **Analytics.** [§6](#6-analytics-and-the-feedback-loop).
 - **Settings.** Account and workspace details, recorder connection.
