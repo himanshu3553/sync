@@ -21,6 +21,7 @@ const mono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: 'FlowBuddy Studio',
   description: 'Record once. Self-maintaining knowledge base.',
+  icons: { icon: '/favicon.png', apple: '/favicon.png' },
 };
 
 // Dogfood: FlowBuddy's own copilot embedded on Studio itself, as a plain customer install —

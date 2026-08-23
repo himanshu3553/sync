@@ -2,6 +2,7 @@ import { ChevronDown } from 'lucide-react';
 
 import { NavLinks } from './nav';
 import { SidebarUser } from './sidebar-user';
+import { Logo } from '@/components/logo';
 
 export function Sidebar({
   workspaceName,
@@ -16,7 +17,7 @@ export function Sidebar({
   return (
     <aside className="fixed inset-y-0 left-0 z-40 hidden w-[230px] flex-col border-r bg-card px-3.5 py-[18px] md:flex">
       <div className="flex items-center gap-2.5 px-2 pb-4">
-        <span className="h-[26px] w-[26px] rounded-lg bg-primary-gradient-logo shadow-[0_2px_8px_rgba(58,80,221,0.35)]" />
+        <Logo size={26} />
         <span className="text-base font-extrabold tracking-tight text-ink">
           FlowBuddy
         </span>

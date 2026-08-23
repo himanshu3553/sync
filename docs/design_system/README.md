@@ -132,7 +132,7 @@ The voice is **plain, calm, second-person, and trustworthy**. It explains the *w
   - *(Production parity note: the handoff's Next.js app uses **lucide-react** with the same metaphors — `Home, Video, BookOpen, Bot, BarChart3, Settings`. Either set is on-brand; Material Symbols is the canonical in these specimens because the hi-fi target uses it.)*
 - **Mono characters as micro-glyphs.** The dense wireframe voice uses monospace characters where an icon would be overkill: `▾` (disclosure), `⋯` (row menu), `×` (close/remove), `→` (flow), `▲ / ▽` (thumb up/down in lists), `●` (step bullet). Keep these in `--font-mono`.
 - **Emoji:** only 👍 / 👎 for end-user helpfulness feedback. Never decorative.
-- **Logo:** `assets/logo-mark.svg` (gradient rounded square; the brand glyph is the white **"F"** since the 2026-07-17 rename — ⚠️ the SVG asset itself still renders the old "S" and needs regenerating) and `assets/logo-wordmark.svg` (mark + "FlowBuddy"). The in-app sidebar often shows the bare gradient mark beside the "FlowBuddy" wordmark.
+- **Logo:** `assets/FlowBuddyAI_logo.png` is the founder-supplied source (blue gradient **"F"** with an arrow path, on white). Everything else is derived from it: `assets/logo-mark.png` (transparent, tight-cropped — what the apps render) and `assets/logo-tile.png` (the mark on a white rounded tile — for dark contexts, favicons and the extension icons). There is no separate wordmark asset: "FlowBuddy" is set in text beside the mark.
 - **Never hand-draw icons.** Use Material Symbols (or lucide in production). Diagonal-stripe placeholders stand in for any real imagery.
 
 ---
@@ -143,7 +143,7 @@ The voice is **plain, calm, second-person, and trustworthy**. It explains the *w
 - `styles.css` — root entry (link this). Imports everything below.
 - `tokens/` — `fonts.css` · `colors.css` · `typography.css` · `spacing.css` · `elevation.css`
 - `guidelines/` — foundation specimen cards (Colors, Type, Spacing, Brand) rendered in the Design System tab.
-- `assets/` — `logo-mark.svg`, `logo-wordmark.svg`.
+- `assets/` — `FlowBuddyAI_logo.png` (source), `logo-mark.png`, `logo-tile.png`.
 
 **Components** (`components/`, React + tokens, each with `.d.ts` + `.prompt.md`)
 

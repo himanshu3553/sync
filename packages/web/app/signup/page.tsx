@@ -4,87 +4,78 @@ import { useActionState } from 'react';
 import Link from 'next/link';
 import { signUpAction } from '@/lib/actions';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { AuthLayout } from '@/components/auth/auth-layout';
+import { GoogleButton, OrDivider } from '@/components/auth/social';
+import { FieldError } from '@/components/auth/field-error';
+import { useAuthForm, validateEmail, validateNewPassword } from '@/components/auth/use-auth-form';
 
 export default function SignUpPage() {
   const [error, action, pending] = useActionState(signUpAction, undefined);
+  const form = useAuthForm({ email: validateEmail, password: validateNewPassword });
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-canvas px-4 py-12">
-      <div className="w-full max-w-sm">
-        <div className="mb-6 flex flex-col items-center gap-2 text-center">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-gradient-logo text-sm font-bold text-white">
-            S
-          </span>
-          <h1 className="text-xl font-extrabold tracking-tight text-ink">FlowBuddy Studio</h1>
-          <p className="text-sm text-muted-foreground">
-            The in-app help copilot for your SaaS.
-          </p>
-        </div>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Create your account</CardTitle>
-            <CardDescription>
-              Sign up to create your FlowBuddy workspace.
-            </CardDescription>
-          </CardHeader>
-          <form action={action}>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                />
-              </div>
-              {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-            </CardContent>
-            <CardFooter className="flex flex-col gap-3">
-              <Button type="submit" className="w-full" disabled={pending}>
-                {pending ? 'Creating…' : 'Create account'}
-              </Button>
-              <p className="text-center text-sm text-muted-foreground">
-                Already have an account?{' '}
-                <Link
-                  href="/signin"
-                  className="font-medium text-foreground underline-offset-4 hover:underline"
-                >
-                  Sign in
-                </Link>
-              </p>
-            </CardFooter>
-          </form>
-        </Card>
-        <p className="mt-6 text-center text-xs text-muted-foreground">
+    <AuthLayout
+      title="Get started for free"
+      subtitle="Create your free account. No credit card required"
+      footer={
+        <>
+          Already have an account?{' '}
           <Link
-            href="/privacy"
-            className="underline-offset-4 hover:text-ink hover:underline"
+            href="/signin"
+            className="font-medium text-foreground underline-offset-4 hover:underline"
           >
-            Privacy Policy
+            Sign in
           </Link>
-        </p>
-      </div>
-    </div>
+        </>
+      }
+    >
+      <GoogleButton />
+      <OrDivider />
+      <Card>
+        <form action={action} onSubmit={form.onSubmit} noValidate>
+          <CardContent className="space-y-4 pt-6">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" type="email" autoComplete="email" {...form.field('email')} />
+              <FieldError name="email" message={form.show('email')} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                autoComplete="new-password"
+                {...form.field('password')}
+              />
+              <FieldError name="password" message={form.show('password')} />
+            </div>
+            {error && (
+              <p role="alert" className="text-sm text-destructive">
+                {error}
+              </p>
+            )}
+          </CardContent>
+          <CardFooter className="flex flex-col gap-3">
+            <Button type="submit" className="w-full" disabled={pending || !form.valid}>
+              {pending ? 'Creating…' : 'Create account'}
+            </Button>
+            <p className="text-center text-xs text-muted-foreground">
+              By signing up, you agree to our{' '}
+              <Link href="/privacy" className="underline underline-offset-4">
+                Privacy Policy
+              </Link>{' '}
+              and{' '}
+              <Link href="/terms" className="underline underline-offset-4">
+                Terms of Service
+              </Link>
+              .
+            </p>
+          </CardFooter>
+        </form>
+      </Card>
+    </AuthLayout>
   );
 }

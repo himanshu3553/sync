@@ -145,7 +145,7 @@ Full source in **`tokens/`**. Key values used by these screens:
 **Elevation** — popup shadow `0 6px 22px rgba(0,0,0,.10)` (close to `--shadow-widget`). Focus ring `0 0 0 3px rgba(58,80,221,.18)`.
 
 ## Assets
-- **Logo mark** — replace the 20×20 indigo square with the real FlowBuddy mark (`assets/logo-mark.svg` exists in the parent project).
+- **Logo mark** — the 20×20 `.logo` span renders the real FlowBuddy mark (`icons/icon-48.png`, scaled).
 - **Org avatar** — 24×24 circular workspace avatar (placeholder grey).
 - **Icons** — gear `⚙`, retry `↻`, warning `⚠` are placeholders; swap for the product icon set (**Material Symbols Outlined** in the FlowBuddy system) or the extension's existing icons.
 - No raster images; everything else is CSS shapes (dots, bars, spinner, progress).

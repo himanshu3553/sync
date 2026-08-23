@@ -34,7 +34,7 @@ const baseJsonLd = [
     '@type': 'Organization',
     name: 'FlowBuddy',
     url: 'https://flowbuddyai.com',
-    logo: 'https://flowbuddyai.com/favicon.svg',
+    logo: 'https://flowbuddyai.com/logo-mark.png',
   },
   {
     '@context': 'https://schema.org',
@@ -71,7 +71,8 @@ const baseJsonLd = [
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     {noindex && <meta name="robots" content="noindex" />}
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="sitemap" href="/sitemap.xml" />
 
     <meta property="og:type" content="website" />

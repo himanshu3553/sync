@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Logo } from '@/components/logo';
 
 export default function ResetPasswordPage({
   searchParams,
@@ -26,9 +27,7 @@ export default function ResetPasswordPage({
     <div className="flex min-h-screen items-center justify-center bg-canvas px-4 py-12">
       <div className="w-full max-w-sm">
         <div className="mb-6 flex flex-col items-center gap-2 text-center">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-gradient-logo text-sm font-bold text-white">
-            S
-          </span>
+          <Logo size={36} />
           <h1 className="text-xl font-extrabold tracking-tight text-ink">FlowBuddy Studio</h1>
         </div>
         <Card>

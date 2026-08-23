@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { CheckCircle2 } from 'lucide-react';
 import { connectExtension } from '@/lib/connect-actions';
 import { Button } from '@/components/ui/button';
+import { Logo } from '@/components/logo';
 import {
   Card,
   CardContent,
@@ -59,9 +60,7 @@ export function ConnectClient({ email }: { email: string }) {
     <div className="flex min-h-screen items-center justify-center bg-canvas px-4 py-12">
       <div className="w-full max-w-md">
         <div className="mb-6 flex flex-col items-center gap-2 text-center">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-gradient-logo text-sm font-bold text-white">
-            S
-          </span>
+          <Logo size={36} />
           <h1 className="text-xl font-extrabold tracking-tight text-ink">
             Connect the FlowBuddy Recorder
           </h1>
