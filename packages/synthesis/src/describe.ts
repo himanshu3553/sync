@@ -41,6 +41,7 @@ const MAX_DESCRIPTION_CHARS = 900; // a plan, not a retelling — see the prompt
 // window is wide where the workflow describer's is narrow.
 const MAX_RECORDING_TRANSCRIPT_CHARS = 24_000;
 const MAX_RECORDING_DESCRIPTION_CHARS = 600; // a coverage line for the recordings list, not an article
+const MAX_RECORDING_TITLE_CHARS = 80; // a list-row name — the founder's own Rename is capped at 120
 
 const SYSTEM = `You write ONE short paragraph describing a product workflow, for an in-app help copilot that ALSO has the workflow's exact steps.
 
@@ -66,8 +67,8 @@ const schema = {
   schema: {
     type: 'object',
     additionalProperties: false,
-    properties: { description: { type: 'string' } },
-    required: ['description'],
+    properties: { title: { type: 'string' }, description: { type: 'string' } },
+    required: ['title', 'description'],
   },
 } as const;
 
@@ -155,18 +156,23 @@ export async function describeWorkflow(
  * best-effort (a recording without a description is the status quo), and it must never invent — an
  * empty answer is the model saying the titles already tell the whole story.
  */
-const RECORDING_SYSTEM = `You write ONE short paragraph saying what a product recording COVERS, for the founder who recorded it.
+const RECORDING_SYSTEM = `You name a product recording and write ONE short paragraph saying what it COVERS, for the founder who recorded it.
 
 You get the list of workflows that were extracted from the recording, and the full narration transcript.
 
-Say what the recording covers, so the founder can tell their recordings apart at a glance:
+TITLE — a name for the recording, so the founder can pick it out of a list:
+- Three to seven words, sentence case, no trailing period. Name what was demonstrated ("Onboarding a new client", "Billing setup and invoice export"), in the founder's own terms.
+- Never a URL, never a product's domain, never a sentence. If the recording covers several unrelated tasks, name the theme or the first two joined with "and".
+- Never copy a specific value from the recording — a project name, a person's name, a filename. Name the KIND of thing.
+
+DESCRIPTION — what the recording covers:
 - The tasks it demonstrates — group them naturally, never enumerate every step.
 - Any product explanation the narration carries BEYOND the tasks: what the product is, features, plans or pricing, concepts explained. Name this — it is the one thing the workflow list cannot show.
 
 Hard rules:
 - Use ONLY the workflow titles and the narration. NEVER add products, features, plans, or behaviour from general knowledge — if the narration doesn't say it, it does not exist.
 - Never instruct ("click", "go to", "you should") — you are describing coverage, not how to do anything.
-- If the narration adds nothing beyond the workflow titles, return an empty string. The founder already sees the workflow list; restating it is noise.
+- If the narration adds nothing beyond the workflow titles, return an empty description. The founder already sees the workflow list; restating it is noise. Still return a title.
 - One to three sentences, plain prose, no lists, no markdown.`;
 
 const recordingSchema = {
@@ -175,20 +181,30 @@ const recordingSchema = {
   schema: {
     type: 'object',
     additionalProperties: false,
-    properties: { description: { type: 'string' } },
-    required: ['description'],
+    properties: { title: { type: 'string' }, description: { type: 'string' } },
+    required: ['title', 'description'],
   },
 } as const;
+
+/** The recording-level read: a NAME for the list and a coverage line. Either may be null — the
+ *  description by design when the narration adds nothing, the title only when the call failed. */
+export interface RecordingSummary {
+  title: string | null;
+  description: string | null;
+}
+
+const NO_SUMMARY: RecordingSummary = { title: null, description: null };
 
 export async function describeRecording(
   openai: OpenAI,
   model: string,
   workflowTitles: string[],
   transcriptText: string,
-): Promise<string | null> {
+): Promise<RecordingSummary> {
   const text = transcriptText.trim();
-  // No narration → the workflow titles are the whole story, and Studio already lists them.
-  if (!text) return null;
+  // No narration → the workflow titles are the whole story, and Studio already lists them; the
+  // recording keeps its URL for a name.
+  if (!text) return NO_SUMMARY;
 
   const user = [
     'WORKFLOWS EXTRACTED FROM THIS RECORDING:',
@@ -213,12 +229,21 @@ export async function describeRecording(
       },
       stage: 'describe-recording',
     });
-    const parsed = JSON.parse(raw || '{}') as { description?: unknown };
-    const out = typeof parsed.description === 'string' ? parsed.description.trim() : '';
-    if (!out) return null;
+    const parsed = JSON.parse(raw || '{}') as { title?: unknown; description?: unknown };
+    const title = typeof parsed.title === 'string' ? cleanTitle(parsed.title) : '';
+    const description = typeof parsed.description === 'string' ? parsed.description.trim() : '';
     // Redacted like every other authored string a human reads.
-    return redactText(out.slice(0, MAX_RECORDING_DESCRIPTION_CHARS));
+    return {
+      title: title ? redactText(title.slice(0, MAX_RECORDING_TITLE_CHARS)) : null,
+      description: description ? redactText(description.slice(0, MAX_RECORDING_DESCRIPTION_CHARS)) : null,
+    };
   } catch {
-    return null;
+    return NO_SUMMARY;
   }
+}
+
+/** One line, no wrapping quotes, no trailing period — the prompt asks for all three, the model
+ *  occasionally forgets one. */
+function cleanTitle(raw: string): string {
+  return raw.replace(/\s+/g, ' ').trim().replace(/^["'“”]+|["'“”]+$/g, '').replace(/[.。]+$/, '').trim();
 }

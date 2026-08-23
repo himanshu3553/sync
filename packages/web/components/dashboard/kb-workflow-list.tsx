@@ -49,7 +49,16 @@ export interface WorkflowRow {
 
 type Filter = 'all' | 'approved' | 'pending' | 'replaced';
 
-export function KbWorkflowList({ workflows }: { workflows: WorkflowRow[] }) {
+export function KbWorkflowList({
+  workflows,
+  readOnly = false,
+}: {
+  workflows: WorkflowRow[];
+  /** A recording's own page shows its workflows to READ, not to approve: no awaiting-approval
+   *  strip, no search, no switch — the status pill stays, approval happens on the KB or the
+   *  workflow's page. The Knowledge Base page never sets this. */
+  readOnly?: boolean;
+}) {
   const [filter, setFilter] = useState<Filter>('all');
   const [q, setQ] = useState('');
   const [busyKey, setBusyKey] = useState<string | null>(null);
@@ -157,7 +166,7 @@ export function KbWorkflowList({ workflows }: { workflows: WorkflowRow[] }) {
 
   return (
     <div className="space-y-3.5">
-      {counts.pending > 0 && (
+      {!readOnly && counts.pending > 0 && (
         <div className="flex flex-wrap items-center gap-3 rounded-tile border border-warning-border bg-warning-bg2 px-4 py-3.5">
           <span className="h-[9px] w-[9px] shrink-0 rounded-full bg-warning-dot" />
           <p className="flex-1 text-[13px] leading-relaxed text-warning-text">
@@ -239,6 +248,7 @@ export function KbWorkflowList({ workflows }: { workflows: WorkflowRow[] }) {
             </button>
           ))}
         </div>
+        {!readOnly && (
         <div className="relative mb-2 w-full sm:w-56">
           <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-faint" />
           <Input
@@ -248,6 +258,7 @@ export function KbWorkflowList({ workflows }: { workflows: WorkflowRow[] }) {
             className="h-8 pl-8"
           />
         </div>
+        )}
       </div>
 
       {visible.length === 0 ? (
@@ -368,12 +379,14 @@ export function KbWorkflowList({ workflows }: { workflows: WorkflowRow[] }) {
                     >
                       {w.copilotApproved ? 'Live' : 'Pending approval'}
                     </span>
-                    <Switch
-                      checked={w.copilotApproved}
-                      disabled={busy}
-                      onCheckedChange={(v) => toggle(w, v)}
-                      aria-label={`Approve ${w.segmentTitle} for the copilot`}
-                    />
+                    {!readOnly && (
+                      <Switch
+                        checked={w.copilotApproved}
+                        disabled={busy}
+                        onCheckedChange={(v) => toggle(w, v)}
+                        aria-label={`Approve ${w.segmentTitle} for the copilot`}
+                      />
+                    )}
                   </>
                 )}
               </li>

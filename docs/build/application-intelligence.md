@@ -83,7 +83,7 @@ Example product: FlowBuddy itself.
 | **Overview** (one) | What the product is, who it's for, the major areas — the orienting page. | "FlowBuddy adds an AI copilot to your SaaS…" |
 | **Concept** (many) | One noun: what it is, what it isn't, how it relates. The glossary, one page per entry. | "A **workspace** is… each workspace has its own KB, mode, and widget key." |
 | **Area** (some) | One region of the product: what lives there, which workflows operate there. | "**Analytics** shows questions asked, coverage gaps…" |
-| **Recording description** (one per recording) | What this recording covers — the recording-level sibling of the workflow description. | "A tour of Studio: sign-up, first recording, approval, embedding." |
+| **Recording description** (one per recording) | What this recording covers — the recording-level sibling of the workflow description. The same read also names the recording (a generated title the founder's own Rename overrides, never the reverse). | "A tour of Studio: sign-up, first recording, approval, embedding." |
 
 Every page carries: its narration citations (AI-7), its links (AI-4), its approval + liveness state
 (AI-5), its identity (AI-6). Relations stay as links in v1 — "prerequisite-of," "alternative-to" and

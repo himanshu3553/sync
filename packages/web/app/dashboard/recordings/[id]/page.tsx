@@ -1,52 +1,39 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import {
-  ChevronLeft,
-  ArrowUpRight,
-  MousePointerClick,
-  Keyboard,
-  Navigation,
-  CornerDownLeft,
-  Flag,
-  Hand,
-  Circle,
-} from 'lucide-react';
 
 import { prisma } from '@flowbuddy/db';
 import type { SessionManifest } from '@flowbuddy/shared';
 import { getCurrentWorkspace } from '@/lib/session';
 import { signedUrl, sessionObjectKey } from '@/lib/storage';
 import { listCandidates } from '@/lib/candidates';
+import { listWorkflowOverlaps } from '@/lib/overlaps';
+import { toWorkflowRows } from '@/lib/workflow-rows';
+import { KbWorkflowList } from '@/components/dashboard/kb-workflow-list';
+import { ArrowUpRight } from 'lucide-react';
 import {
   asManifest,
   deriveRecordingMeta,
   timelineEvents,
   formatDuration,
   isRecordingStalled,
-  recordingStatusBadge,
+  recordingName,
 } from '@/lib/recordings';
 import { PageHeader } from '@/components/dashboard/page-header';
-import { StatusBadge } from '@/components/dashboard/status-badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RecordingManageMenu } from '@/components/dashboard/recording-manage';
 import { ReprocessButton } from '@/components/dashboard/recording-reprocess-button';
+import { ClampedText } from '@/components/dashboard/clamped-text';
+import {
+  RecordingActionsTimeline,
+  type TimelineRow,
+} from '@/components/dashboard/recording-actions-timeline';
 import {
   RecordingPlayer,
   type PlayerFrame,
 } from '@/components/dashboard/recording-player';
 
 export const dynamic = 'force-dynamic';
-
-const EVENT_ICON: Record<string, typeof MousePointerClick> = {
-  click: MousePointerClick,
-  input: Keyboard,
-  submit: CornerDownLeft,
-  nav: Navigation,
-  scroll: Hand,
-  keydown: Keyboard,
-  marker: Flag,
-};
 
 export default async function RecordingDetailPage({
   params,
@@ -92,30 +79,38 @@ export default async function RecordingDetailPage({
     }))
     .sort((a, b) => a.t - b.t);
 
-  const candidates = await listCandidates(ws, id);
   const transcript =
     (source.transcript as { text?: string; segments?: unknown[] } | null) ?? null;
-  const title = source.title || source.appBaseUrl || 'Recording';
-  const app = manifest?.app;
+  const title = recordingName(source);
   const recordedBy = source.createdBy?.name || source.createdBy?.email || '—';
   const failed = source.status === 'error';
   const stalled = isRecordingStalled(source.status, source.updatedAt);
   const hasReplay = frames.length > 0 || !!audioUrl;
-  const st = recordingStatusBadge(source.status, { stalled });
+  const timelineRows: TimelineRow[] = events.map((e) => ({
+    id: e.id,
+    t: e.t,
+    type: e.type,
+    label: e.label,
+    routePath: e.routePath,
+    url: e.shotRel ? shotUrls.get(e.shotRel) ?? null : null,
+  }));
+
+  const [candidates, overlaps] = await Promise.all([listCandidates(ws, id), listWorkflowOverlaps(ws)]);
+  const workflowRows = toWorkflowRows(candidates, overlaps);
+  const workflowCount = `${candidates.length} workflow${candidates.length === 1 ? '' : 's'}`;
+  const recordedOn = source.createdAt.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+  const subtitle = [workflowCount, recordedOn, source.appBaseUrl].filter(Boolean).join(' · ');
 
   const summary: [string, string][] = [
     ['App', source.appBaseUrl || '—'],
     ['Duration', meta.durationMs ? formatDuration(meta.durationMs) : '—'],
-    ['Actions captured', String(meta.eventCount)],
-    ['Screenshots', String(meta.screenshotCount)],
-    ['Narration', meta.hasAudio ? 'Yes' : 'No'],
-    ['Viewport', app?.viewport ? `${app.viewport.w}×${app.viewport.h}` : '—'],
-    ['Recorded', source.createdAt.toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-    })],
+    ['Workflows', String(candidates.length)],
+    ['Recorded on', recordedOn],
     ['Recorded by', recordedBy],
   ];
 
@@ -123,19 +118,15 @@ export default async function RecordingDetailPage({
     <>
       <PageHeader
         title={title}
-        subtitle={`${source.kind} · ${meta.eventCount} actions · ${formatDuration(meta.durationMs)}`}
+        subtitle={subtitle}
+        contentClassName="max-w-6xl px-4 md:px-8"
         actions={
           <div className="flex items-center gap-2">
-            {(source.status === 'ready' || source.status === 'done') && candidates.length > 0 && (
-              <Button size="sm" variant="outline" asChild>
-                <Link href={`/dashboard/kb/${source.id}/reorganize`}>Reorganize</Link>
-              </Button>
-            )}
-            <StatusBadge tone={st.tone}>{st.label}</StatusBadge>
             <RecordingManageMenu
+              vertical
               id={source.id}
               currentTitle={source.title}
-              appUrl={source.appBaseUrl}
+              appUrl={source.generatedTitle || source.appBaseUrl}
               status={source.status}
               redirectOnDelete
             />
@@ -143,14 +134,6 @@ export default async function RecordingDetailPage({
         }
       />
       <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 md:px-8">
-        <Link
-          href="/dashboard/recordings"
-          className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground"
-        >
-          <ChevronLeft className="h-3.5 w-3.5" />
-          Recordings
-        </Link>
-
         {failed && (
           <div className="rounded-card border border-danger-border bg-danger-bg px-4 py-3.5">
             <p className="text-sm font-semibold text-danger-text">
@@ -193,27 +176,44 @@ export default async function RecordingDetailPage({
           </div>
         )}
 
-        {/* What the recording covers — derived from the narration at build time (incl. product
-            explanation that isn't any workflow, e.g. pricing). Founder-facing only. */}
-        {source.description && (
-          <div className="rounded-card border bg-card px-4 py-3.5">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              What this recording covers
-            </p>
-            <p className="mt-1 text-sm leading-relaxed text-ink">{source.description}</p>
-          </div>
-        )}
+        {/* Same banner shape as the KB's "awaiting approval" strip, so the hand-off reads as one
+            control across both pages. */}
+        <div className="flex flex-wrap items-center gap-3 rounded-tile border border-warning-border bg-warning-bg2 px-4 py-3.5">
+          <span className="h-[9px] w-[9px] shrink-0 rounded-full bg-warning-dot" />
+          <p className="flex-1 text-[13px] leading-relaxed text-warning-text">
+            <b className="font-semibold text-[#4a3e1e]">Extracted Workflows.</b>{' '}
+            {candidates.length > 0
+              ? `FlowBuddy extracted ${workflowCount} from this recording. Review and approve them for the copilot.`
+              : source.status === 'ready' || source.status === 'done'
+                ? 'No workflows were extracted from this recording.'
+                : 'Workflows appear once processing finishes.'}
+          </p>
+          <Button asChild size="sm" className="shrink-0">
+            <Link href="/dashboard/kb">
+              Review &amp; approve workflows
+              <ArrowUpRight className="h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
           <div className="min-w-0 space-y-6">
             {/* Replay */}
             <section className="space-y-2.5">
               <div>
-                <h2 className="text-base font-semibold tracking-tight">Replay</h2>
-                <p className="text-sm text-muted-foreground">
-                  Your narration plays while the captured screenshots advance — a
-                  reconstruction of what FlowBuddy recorded, not a video.
-                </p>
+                <h2 className="text-base font-semibold tracking-tight">Summary</h2>
+                {/* The summary is derived from the narration at build time (incl. product
+                    explanation that isn't any workflow, e.g. pricing). Founder-facing only; the
+                    replay note stands in until the recording has been processed. */}
+                <div className="text-sm leading-relaxed text-muted-foreground">
+                  <ClampedText
+                    lines={2}
+                    text={
+                      source.description ||
+                      'Replay your narration alongside the captured screenshots to see what FlowBuddy recorded. This is a reconstruction of the session, not a video.'
+                    }
+                  />
+                </div>
               </div>
               {hasReplay ? (
                 <RecordingPlayer
@@ -228,85 +228,46 @@ export default async function RecordingDetailPage({
               )}
             </section>
 
-            {/* Event timeline */}
+            {/* Extracted workflows — the KB list, scoped to this recording. Same component on
+                purpose: approving here IS approving there, and a second list would drift. */}
             <section className="space-y-2.5">
-              <h2 className="text-base font-semibold tracking-tight">
-                Captured actions
-                <span className="ml-2 font-mono text-xs font-normal text-muted-foreground">
-                  {events.length}
-                </span>
-              </h2>
-              {events.length === 0 ? (
-                <div className="rounded-card border bg-card px-4 py-8 text-center text-sm text-muted-foreground">
-                  No actions were captured.
-                </div>
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-base font-semibold tracking-tight">
+                  Extracted Workflows
+                  <span className="ml-2 font-mono text-xs font-normal text-muted-foreground">
+                    {candidates.length}
+                  </span>
+                </h2>
+                {(source.status === 'ready' || source.status === 'done') && candidates.length > 0 && (
+                  <Button
+                    size="sm"
+                    variant="soft"
+                    className="hover:border-primary hover:bg-primary hover:text-primary-foreground"
+                    asChild
+                  >
+                    <Link href={`/dashboard/kb/${source.id}/reorganize`}>Reorganize</Link>
+                  </Button>
+                )}
+              </div>
+              {workflowRows.length > 0 ? (
+                <KbWorkflowList workflows={workflowRows} readOnly />
               ) : (
-                <ul className="overflow-hidden rounded-card border bg-card">
-                  {events.map((e, i) => {
-                    const Icon = EVENT_ICON[e.type] || Circle;
-                    const url = e.shotRel ? shotUrls.get(e.shotRel) : null;
-                    return (
-                      <li
-                        key={e.id}
-                        className="flex items-center gap-3 border-b px-3.5 py-2.5 last:border-b-0"
-                      >
-                        <span className="w-10 shrink-0 font-mono text-[10.5px] tabular-nums text-faint">
-                          {formatDuration(e.t)}
-                        </span>
-                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-brand-50 text-primary">
-                          <Icon className="h-3.5 w-3.5" />
-                        </span>
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate text-[13px] font-medium text-ink">
-                            <span className="font-mono text-[10.5px] uppercase text-muted-foreground">
-                              {e.type}
-                            </span>{' '}
-                            {e.label}
-                          </span>
-                          {e.routePath && (
-                            <span className="block truncate font-mono text-[10px] text-faint">
-                              {e.routePath}
-                            </span>
-                          )}
-                        </span>
-                        {url && (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={url}
-                            alt=""
-                            className="hidden h-9 w-14 shrink-0 rounded border border-[color:var(--media-border)] object-cover object-top sm:block"
-                          />
-                        )}
-                        <span className="w-2 shrink-0 text-right font-mono text-[10px] text-faint">
-                          {i + 1}
-                        </span>
-                      </li>
-                    );
-                  })}
-                </ul>
+                <div className="rounded-card border bg-card px-4 py-8 text-center text-sm text-muted-foreground">
+                  {source.status === 'ready' || source.status === 'done'
+                    ? 'No workflows were extracted from this recording.'
+                    : 'Workflows appear once processing finishes.'}
+                </div>
               )}
             </section>
           </div>
 
           {/* Sidebar */}
-          <aside className="min-w-0 space-y-5 lg:sticky lg:top-20 lg:self-start">
+          <aside className="min-w-0 space-y-5">
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Capture summary</CardTitle>
+                <CardTitle className="text-sm">Recording Details</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2.5">
-                {meta.layers.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 pb-1">
-                    {meta.layers.map((l) => (
-                      <span
-                        key={l}
-                        className="rounded-pill border bg-secondary px-2 py-0.5 font-mono text-[9.5px] font-semibold uppercase tracking-wide text-secondary-foreground"
-                      >
-                        {l}
-                      </span>
-                    ))}
-                  </div>
-                )}
                 <dl className="space-y-1.5">
                   {summary.map(([k, v]) => (
                     <div key={k} className="flex items-baseline justify-between gap-3">
@@ -320,36 +281,16 @@ export default async function RecordingDetailPage({
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Distilled workflows</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <p className="text-xs text-muted-foreground">
-                  {candidates.length > 0
-                    ? `FlowBuddy extracted ${candidates.length} workflow${candidates.length === 1 ? '' : 's'} from this recording. Review and approve them for the copilot.`
-                    : source.status === 'ready' || source.status === 'done'
-                      ? 'No workflows were distilled from this recording.'
-                      : 'Workflows appear once processing finishes.'}
-                </p>
-                <Button asChild variant="soft" size="sm" className="w-full">
-                  <Link href="/dashboard/kb">
-                    Review &amp; approve workflows
-                    <ArrowUpRight className="h-4 w-4" />
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
 
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Transcript</CardTitle>
+                <CardTitle className="text-sm">Recording Transcript</CardTitle>
               </CardHeader>
               <CardContent>
                 {transcript?.text ? (
                   <details className="text-sm">
                     <summary className="cursor-pointer text-xs text-muted-foreground">
-                      {transcript.segments?.length ?? 0} segments — expand
+                      Click here to expand
                     </summary>
                     <p className="mt-3 whitespace-pre-wrap text-xs leading-relaxed">
                       {transcript.text}
@@ -362,6 +303,23 @@ export default async function RecordingDetailPage({
                 )}
               </CardContent>
             </Card>
+
+            {/* Event timeline */}
+            <section className="space-y-2.5">
+              <h2 className="text-base font-semibold tracking-tight">
+                Captured Actions
+                <span className="ml-2 font-mono text-xs font-normal text-muted-foreground">
+                  {events.length}
+                </span>
+              </h2>
+              {events.length === 0 ? (
+                <div className="rounded-card border bg-card px-4 py-8 text-center text-sm text-muted-foreground">
+                  No actions were captured.
+                </div>
+              ) : (
+                <RecordingActionsTimeline rows={timelineRows} />
+              )}
+            </section>
           </aside>
         </div>
       </div>

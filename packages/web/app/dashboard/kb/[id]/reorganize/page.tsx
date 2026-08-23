@@ -4,6 +4,7 @@ import { ChevronLeft } from 'lucide-react';
 import { prisma } from '@flowbuddy/db';
 import { getCurrentWorkspace } from '@/lib/session';
 import { signedUrl, sessionObjectKey } from '@/lib/storage';
+import { recordingName as resolveRecordingName } from '@/lib/recordings';
 import { PageHeader } from '@/components/dashboard/page-header';
 import { StatusBadge } from '@/components/dashboard/status-badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -28,7 +29,7 @@ export default async function ReorganizePage({ params }: { params: Promise<{ id:
 
   const source = await prisma.knowledgeSource.findFirst({
     where: { id, workspaceId: ctx.workspace.id },
-    select: { id: true, title: true, appBaseUrl: true, status: true, boundaryOverrides: true },
+    select: { id: true, title: true, generatedTitle: true, appBaseUrl: true, status: true, boundaryOverrides: true },
   });
   if (!source) notFound();
   const ready = source.status === 'ready' || source.status === 'done';
@@ -91,7 +92,7 @@ export default async function ReorganizePage({ params }: { params: Promise<{ id:
     }),
   );
 
-  const recordingName = source.title || source.appBaseUrl || 'Recording';
+  const recordingName = resolveRecordingName(source);
 
   return (
     <>

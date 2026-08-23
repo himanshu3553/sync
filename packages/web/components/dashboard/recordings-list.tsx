@@ -2,19 +2,22 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Clock, Search, Volume2 } from 'lucide-react';
+import { Clock, Maximize2, Search, Volume2 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { formatDuration, recordingStatusBadge } from '@/lib/recordings';
 import { Input } from '@/components/ui/input';
 import { StatusBadge } from '@/components/dashboard/status-badge';
 import { RecordingManageMenu } from '@/components/dashboard/recording-manage';
+import { ImageLightbox, type LightboxImage } from '@/components/dashboard/image-lightbox';
 
 export interface RecordingRow {
   id: string;
   title: string;
   /** The founder-set title (null = none), passed to the rename dialog. */
   rawTitle: string | null;
+  /** The model-written name (null without narration) — the rename dialog's placeholder. */
+  generatedTitle: string | null;
   appUrl: string | null;
   kind: string;
   date: string;
@@ -57,6 +60,7 @@ function statusMeta(status: string, stalled: boolean) {
 export function RecordingsList({ rows }: { rows: RecordingRow[] }) {
   const [filter, setFilter] = useState<Filter>('all');
   const [q, setQ] = useState('');
+  const [lightbox, setLightbox] = useState<LightboxImage | null>(null);
 
   const counts = useMemo(
     () => ({
@@ -141,20 +145,12 @@ export function RecordingsList({ rows }: { rows: RecordingRow[] }) {
                   s.processing && 'border-brand-200 shadow-step',
                 )}
               >
-                {/* Thumbnail */}
-                <Link
-                  href={`/dashboard/recordings/${r.id}`}
-                  className="relative h-[38px] w-14 shrink-0 overflow-hidden rounded-md border border-[color:var(--media-border)] bg-media"
-                >
-                  {r.thumbUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={r.thumbUrl}
-                      alt=""
-                      className="h-full w-full object-cover object-top"
-                    />
-                  ) : null}
-                </Link>
+                {/* Thumbnail — expands to a lightbox on click, like a workflow step's image. */}
+                <RecordingThumb
+                  url={r.thumbUrl}
+                  title={r.title}
+                  onExpand={() => r.thumbUrl && setLightbox({ url: r.thumbUrl, title: r.title })}
+                />
 
                 {/* Main */}
                 <Link
@@ -190,8 +186,6 @@ export function RecordingsList({ rows }: { rows: RecordingRow[] }) {
                         <Clock className="h-3 w-3" />
                         {formatDuration(r.durationMs)}
                       </span>
-                      <span>{r.eventCount} actions</span>
-                      <span>{r.screenshotCount} shots</span>
                       {r.hasAudio && (
                         <span className="inline-flex items-center gap-1">
                           <Volume2 className="h-3 w-3" />
@@ -199,6 +193,7 @@ export function RecordingsList({ rows }: { rows: RecordingRow[] }) {
                         </span>
                       )}
                       <span>{r.recordedAgo}</span>
+                      {r.appUrl && <span className="truncate">{r.appUrl}</span>}
                     </span>
                     </>
                   )}
@@ -206,10 +201,8 @@ export function RecordingsList({ rows }: { rows: RecordingRow[] }) {
 
                 {/* Right rail */}
                 <span className="hidden w-[92px] shrink-0 text-right text-[12.5px] sm:block">
-                  {s.failed || s.stalled ? (
+                  {s.failed || s.stalled || s.processing ? (
                     <span className="text-faint">—</span>
-                  ) : s.processing ? (
-                    <span className="text-faint">distilling…</span>
                   ) : r.workflowCount > 0 ? (
                     <span className="text-ink">
                       {r.workflowCount} workflow{r.workflowCount === 1 ? '' : 's'}
@@ -222,7 +215,7 @@ export function RecordingsList({ rows }: { rows: RecordingRow[] }) {
                 <RecordingManageMenu
                   id={r.id}
                   currentTitle={r.rawTitle}
-                  appUrl={r.appUrl}
+                  appUrl={r.generatedTitle || r.appUrl}
                   status={r.status}
                 />
               </li>
@@ -230,6 +223,40 @@ export function RecordingsList({ rows }: { rows: RecordingRow[] }) {
           })}
         </ul>
       )}
+
+      <ImageLightbox image={lightbox} onClose={() => setLightbox(null)} />
     </div>
+  );
+}
+
+/** The row thumbnail: first captured screenshot, with a hover "expand" affordance that opens the
+ *  list's lightbox. Without a screenshot it is an inert media placeholder. */
+function RecordingThumb({
+  url,
+  title,
+  onExpand,
+}: {
+  url: string | null;
+  title: string;
+  onExpand: () => void;
+}) {
+  const frame =
+    'relative h-[38px] w-14 shrink-0 overflow-hidden rounded-md border border-[color:var(--media-border)] bg-media';
+  if (!url) return <span className={frame} />;
+  return (
+    <button
+      type="button"
+      aria-label={`Open the first screenshot of ${title} larger`}
+      onClick={onExpand}
+      className={cn(frame, 'group/thumb transition hover:border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring')}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={url} alt="" className="h-full w-full object-cover object-top" />
+      <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-foreground/10 opacity-0 transition group-hover/thumb:opacity-100">
+        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-background/90 text-foreground shadow-card">
+          <Maximize2 className="h-3 w-3" />
+        </span>
+      </span>
+    </button>
   );
 }

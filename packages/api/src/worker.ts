@@ -337,7 +337,7 @@ const worker = new Worker(
         );
         if (active.length > 0) learnedBoundaries = active;
       }
-      const { transcript, workflows, warning, recordingDescription, pages } = await buildWorkflowKB({
+      const { transcript, workflows, warning, recordingDescription, recordingTitle, pages } = await buildWorkflowKB({
         manifest,
         getArtifact,
         apiKey: config.openaiApiKey,
@@ -348,11 +348,16 @@ const worker = new Worker(
         ...(learnedBoundaries ? { learnedBoundaries } : {}),
       });
 
-      // `description` is overwritten (null included) like the per-workflow descriptions: on a
-      // reprocess a stale coverage line about content that changed is worse than none.
+      // `description` and `generatedTitle` are overwritten (null included) like the per-workflow
+      // descriptions: on a reprocess a stale coverage line about content that changed is worse than
+      // none. The founder's own `title` is never touched here — it is theirs, and it wins on display.
       await prisma.knowledgeSource.update({
         where: { id: sessionId },
-        data: { transcript: transcript as object, description: recordingDescription },
+        data: {
+          transcript: transcript as object,
+          description: recordingDescription,
+          generatedTitle: recordingTitle,
+        },
       });
 
       // ── P3-M1: which of these workflows ARE the ones already here? ──────────────────────────────

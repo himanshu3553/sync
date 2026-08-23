@@ -12,31 +12,43 @@ export function PageHeader({
   subtitle,
   actions,
   className,
+  contentClassName,
 }: {
   /** Usually a string; a detail page may pass a back link instead, so the bar reads as a crumb. */
   title: React.ReactNode;
   subtitle?: string;
   actions?: React.ReactNode;
   className?: string;
+  /** Constrain the bar's CONTENT to the page's own column (e.g. `max-w-6xl px-4 md:px-8`) so the
+   *  title lines up with the cards beneath it; the bar itself stays full-width and sticky. */
+  contentClassName?: string;
 }) {
   return (
     <header
       className={cn(
-        'sticky top-0 z-30 flex h-[62px] items-center justify-between gap-5 border-b bg-card px-5 md:px-6',
+        'sticky top-0 z-30 h-[62px] border-b bg-card',
+        !contentClassName && 'px-5 md:px-6',
         className,
       )}
     >
-      <div className="min-w-0">
-        <h1 className="truncate text-base font-bold tracking-[-0.01em] text-ink">
-          {title}
-        </h1>
-        {subtitle && (
-          <p className="truncate text-[11.5px] text-faint">{subtitle}</p>
+      <div
+        className={cn(
+          'flex h-full items-center justify-between gap-5',
+          contentClassName && cn('mx-auto w-full', contentClassName),
+        )}
+      >
+        <div className="min-w-0">
+          <h1 className="truncate text-base font-bold tracking-[-0.01em] text-ink">
+            {title}
+          </h1>
+          {subtitle && (
+            <p className="truncate text-[11.5px] text-faint">{subtitle}</p>
+          )}
+        </div>
+        {actions && (
+          <div className="flex shrink-0 items-center gap-2">{actions}</div>
         )}
       </div>
-      {actions && (
-        <div className="flex shrink-0 items-center gap-2">{actions}</div>
-      )}
     </header>
   );
 }

@@ -6,15 +6,13 @@ import { getCurrentWorkspace } from '@/lib/session';
 import { listCandidates } from '@/lib/candidates';
 import { listProductPages } from '@/lib/product-pages';
 import { ProductKnowledgeList } from '@/components/dashboard/product-knowledge-list';
-import { listWorkflowOverlaps, duplicatesByWorkflow } from '@/lib/overlaps';
+import { listWorkflowOverlaps } from '@/lib/overlaps';
+import { toOverlapView, toWorkflowRows } from '@/lib/workflow-rows';
 import { DuplicateWorkflows, type OverlapView } from '@/components/dashboard/duplicate-workflows';
 import { PageHeader } from '@/components/dashboard/page-header';
 import { Button } from '@/components/ui/button';
 import { HowToRecordDialog, HowItWorksDialog } from '@/components/dashboard/home-help-dialogs';
-import {
-  KbWorkflowList,
-  type WorkflowRow,
-} from '@/components/dashboard/kb-workflow-list';
+import { KbWorkflowList } from '@/components/dashboard/kb-workflow-list';
 import { KbTabs, type KbTab } from '@/components/dashboard/kb-tabs';
 
 export const dynamic = 'force-dynamic';
@@ -37,29 +35,8 @@ export default async function KnowledgeBasePage({
     listWorkflowOverlaps(ctx.workspace.id),
     listProductPages(ctx.workspace.id),
   ]);
-  // Dates cross the server→client boundary as strings; the view only ever renders them.
-  const toView = (o: (typeof overlaps)[number]): OverlapView => ({
-    similarity: o.similarity,
-    incumbent: { ...o.incumbent, approvedAt: o.incumbent.approvedAt?.toISOString() ?? null },
-    challenger: { ...o.challenger, approvedAt: o.challenger.approvedAt?.toISOString() ?? null },
-  });
-
-  const byWorkflow = duplicatesByWorkflow(overlaps);
-  const workflows: WorkflowRow[] = candidates.map((c) => ({
-    workflowId: c.workflowId,
-    sourceId: c.sourceId,
-    segmentIndex: c.segmentIndex,
-    segmentTitle: c.segmentTitle,
-    itemCount: c.itemCount,
-    sourceTitle: c.appBaseUrl || 'recording',
-    description: c.description,
-    copilotApproved: c.copilotApproved,
-    inactiveReason: c.inactiveReason,
-    supersededByTitle: c.supersededByTitle ?? null,
-    duplicates: (byWorkflow.get(`${c.sourceId}:${c.segmentIndex}`) ?? []).map(toView),
-  }));
-
-  const overlapViews: OverlapView[] = overlaps.map(toView);
+  const workflows = toWorkflowRows(candidates, overlaps);
+  const overlapViews: OverlapView[] = overlaps.map(toOverlapView);
 
   // What is still waiting on the founder, per tab. Surfaced ON the tabs because tabbing hides the
   // half you are not looking at, and unapproved content serves nobody without saying so.

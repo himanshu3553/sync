@@ -131,7 +131,7 @@ export function recordingStatusBadge(
   status: string,
   opts: { stalled?: boolean } = {},
 ): {
-  label: 'Ready' | 'Processing' | 'Failed' | 'Stalled' | 'Recording';
+  label: 'Ready' | 'Processing…' | 'Failed' | 'Stalled' | 'Recording';
   tone: 'success' | 'pending' | 'danger';
 } {
   if (status === 'ready' || status === 'done') return { label: 'Ready', tone: 'success' };
@@ -140,7 +140,7 @@ export function recordingStatusBadge(
   // red "Failed", inviting the owner to delete a recording that is still being made.
   if (status === 'recording') return { label: 'Recording', tone: 'pending' };
   if (status === 'uploaded' || status === 'processing')
-    return opts.stalled ? { label: 'Stalled', tone: 'danger' } : { label: 'Processing', tone: 'pending' };
+    return opts.stalled ? { label: 'Stalled', tone: 'danger' } : { label: 'Processing…', tone: 'pending' };
   return { label: 'Failed', tone: 'danger' };
 }
 
@@ -165,4 +165,14 @@ export function relativeTime(date: Date): string {
   const mo = Math.floor(d / 30);
   if (mo < 12) return `${mo}mo ago`;
   return `${Math.floor(mo / 12)}y ago`;
+}
+
+/** A recording's display name — the founder's Rename wins, then the model's name, then the app URL.
+ *  The ONE resolver: every surface that names a recording goes through it (schema.prisma `title`). */
+export function recordingName(src: {
+  title: string | null;
+  generatedTitle: string | null;
+  appBaseUrl: string | null;
+}): string {
+  return src.title || src.generatedTitle || src.appBaseUrl || '(unknown app)';
 }

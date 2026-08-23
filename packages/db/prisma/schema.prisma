@@ -208,7 +208,10 @@ model KnowledgeSource {
   // recording = artifacts are still arriving (the row exists from the first signed upload, so a
   // recording is visible in Studio while it uploads rather than only after it finishes).
   status      String   @default("uploaded") // recording | uploaded | processing | ready | done | error  (ready = KB built + segmented, candidates available, no articles yet)
-  title       String? // founder-given label for the recording (null = fall back to appBaseUrl)
+  // The recording's name resolves `title ?? generatedTitle ?? appBaseUrl`: the founder's Rename wins,
+  // the model's name (written with `description`, refreshed on every rebuild) is next, the URL last.
+  title          String? // founder-given label for the recording (null = none)
+  generatedTitle String? // model-written name from the narration; null without narration
   appBaseUrl  String?
   manifest    Json? // raw capture manifest (events, markers, meta) — null until the recording is stopped and finalized
   transcript  Json? // persisted narration transcript { text, segments[] } — for retrieval

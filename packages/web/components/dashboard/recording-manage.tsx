@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   Loader2,
   MoreHorizontal,
+  MoreVertical,
   Pencil,
   RefreshCw,
   Trash2,
@@ -40,14 +41,19 @@ export function RecordingManageMenu({
   appUrl,
   status,
   redirectOnDelete = false,
+  vertical = false,
 }: {
   id: string;
   /** The founder-set title (null = none yet). */
   currentTitle: string | null;
+  /** What the recording is called WITHOUT a founder title (the model's name or the app URL) — shown
+   *  as the rename placeholder so the founder sees what they are overriding. */
   appUrl: string | null;
   status: string;
   /** Detail page → jump back to the list after delete; list → just revalidate. */
   redirectOnDelete?: boolean;
+  /** Vertical ⋮ trigger (the detail page header); the list rows keep the horizontal ⋯. */
+  vertical?: boolean;
 }) {
   const router = useRouter();
   const [pending, startTransition] = React.useTransition();
@@ -97,7 +103,7 @@ export function RecordingManageMenu({
             aria-label="Manage recording"
             className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
-            <MoreHorizontal className="h-4 w-4" />
+            {vertical ? <MoreVertical className="h-4 w-4" /> : <MoreHorizontal className="h-4 w-4" />}
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-44">

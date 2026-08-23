@@ -10,6 +10,7 @@ import {
   asManifest,
   deriveRecordingMeta,
   isRecordingStalled,
+  recordingName,
   relativeTime,
 } from '@/lib/recordings';
 import { PageHeader } from '@/components/dashboard/page-header';
@@ -46,6 +47,7 @@ export default async function RecordingsPage() {
       select: {
         id: true,
         title: true,
+        generatedTitle: true,
         kind: true,
         status: true,
         appBaseUrl: true,
@@ -73,9 +75,10 @@ export default async function RecordingsPage() {
         : null;
       return {
         id: s.id,
-        title: s.title || s.appBaseUrl || '(unknown app)',
+        title: recordingName(s),
         appUrl: s.appBaseUrl,
         rawTitle: s.title,
+        generatedTitle: s.generatedTitle,
         kind: s.kind,
         date: s.createdAt.toLocaleDateString('en-US', {
           month: 'short',
@@ -101,7 +104,7 @@ export default async function RecordingsPage() {
     <>
       <PageHeader
         title="Recordings"
-        subtitle="Capture sessions the FlowBuddy Recorder turns into your Knowledge Base."
+        subtitle="Sessions captured with the FlowBuddy Recorder and turned into workflows for your Knowledge Base"
         actions={<RecordButton />}
       />
       <div className="mx-auto w-full max-w-5xl px-4 py-6 md:px-8">

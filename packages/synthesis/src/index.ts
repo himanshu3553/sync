@@ -165,6 +165,9 @@ export interface WorkflowKB {
   /** AIL slice 1 — what the RECORDING covers, incl. narration content that isn't a workflow
    *  (pricing, concepts). Founder-facing. Best-effort: null when narration adds nothing. */
   recordingDescription: string | null;
+  /** A model-written NAME for the recording (slice 1, sibling of `recordingDescription`). Null when
+   *  there was no narration or the call failed — Studio then falls back to the app URL. */
+  recordingTitle: string | null;
   /** AIL slice 2 — product-knowledge pages extracted from the narration, quote-anchored and
    *  validated. `[]` when the narration explains nothing (legal and common) or the call failed.
    *  The WORKER owns what happens to them (identity match → merge/pending/create — pages.ts). */
@@ -237,7 +240,7 @@ export async function buildWorkflowKB(input: BuildWorkflowKBInput): Promise<Work
   // 2. Deterministic cleanup (B) — collapse mechanical dupes / redundant events.
   const cleaned = cleanEvents(input.manifest.events);
   if (cleaned.length === 0) {
-    return { transcript, workflows: [], warning, recordingDescription: null, pages: [] };
+    return { transcript, workflows: [], warning, recordingDescription: null, recordingTitle: null, pages: [] };
   }
 
   // 3. Segment the cleaned events into coherent workflows (one task = one workflow). Founder-drawn
@@ -397,13 +400,15 @@ export async function buildWorkflowKB(input: BuildWorkflowKBInput): Promise<Work
   // product-knowledge PAGES (slice 2). Both are written after distillation so they name the final
   // workflows; both are best-effort; neither adds latency beyond the slower of the two.
   const titles = workflows.map((w) => w.title);
-  const [recordingDescription, pages] = await Promise.all([
+  const [recordingSummary, pages] = await Promise.all([
     describeRecording(openai, input.synthModel, titles, transcript.text),
     extractProductPages(openai, input.synthModel, titles, transcript.text),
   ]);
-  if (recordingDescription) {
+  const recordingDescription = recordingSummary.description;
+  const recordingTitle = recordingSummary.title;
+  if (recordingDescription || recordingTitle) {
     log.info(
-      { component: 'describe-recording', chars: recordingDescription.length },
+      { component: 'describe-recording', title: recordingTitle, chars: recordingDescription?.length ?? 0 },
       'described recording',
     );
   } else {
@@ -428,6 +433,7 @@ export async function buildWorkflowKB(input: BuildWorkflowKBInput): Promise<Work
     workflows,
     warning: [warning, boundaryWarning, inclusionWarning].filter(Boolean).join(' · ') || null,
     recordingDescription,
+    recordingTitle,
     pages,
   };
 }
