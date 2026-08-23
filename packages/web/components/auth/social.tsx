@@ -1,4 +1,8 @@
+'use client';
+
+import { useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
+import { signInWithGoogleAction } from '@/lib/actions';
 
 function GoogleIcon() {
   return (
@@ -11,18 +15,27 @@ function GoogleIcon() {
   );
 }
 
-// Placeholder — Google sign-in is not wired yet; rendered at full strength but inert.
-export function GoogleButton() {
+function GoogleSubmit() {
+  const { pending } = useFormStatus();
   return (
     <Button
-      type="button"
+      type="submit"
       variant="outline"
-      className="mb-4 w-full gap-2.5 bg-white text-ink disabled:opacity-100"
-      disabled
+      className="mb-4 w-full gap-2.5 bg-white text-ink"
+      disabled={pending}
     >
       <GoogleIcon />
-      Continue with Google
+      {pending ? 'Redirecting…' : 'Continue with Google'}
     </Button>
+  );
+}
+
+/** Starts the Google OAuth flow. Render only when the server says Google is configured. */
+export function GoogleButton() {
+  return (
+    <form action={signInWithGoogleAction}>
+      <GoogleSubmit />
+    </form>
   );
 }
 

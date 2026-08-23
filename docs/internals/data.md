@@ -30,7 +30,7 @@ for:
 ### 2.1 Auth.js (NextAuth) core
 
 `User`, `Account`, `Session`, `VerificationToken` — standard NextAuth tables. `User.passwordHash`
-backs the credentials provider. Used only by [Studio](studio.md).
+backs the credentials provider; `Account` holds linked Google identities. Used only by [Studio](studio.md).
 
 ### 2.2 Tenancy & keys
 

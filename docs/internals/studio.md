@@ -78,6 +78,13 @@ Hardening (review §3.6 Cuts 2+3):
 - **Email verification** — new signups get a 24 h single-use link and can't sign in until clicked;
   enforced as a friendly pre-check in `signInAction` AND a backstop in `authorize()`. Enforcement is
   conditional on `emailEnabled` (`RESEND_API_KEY` set) — keyless local dev auto-verifies at signup.
+- **Google sign-in** — on only when the OAuth client is configured (both `AUTH_GOOGLE_*` set; the
+  button hides otherwise). Sessions are JWTs with no Auth.js adapter, so the Google identity is
+  reconciled to OUR `User` row by hand: create-or-**link by email** (user decision 2026-08-23: one
+  user, both ways in — safe because Google only returns verified addresses; linking also verifies
+  an unverified password account), an `Account` row for the Google id, and the JWT `sub` swapped
+  from Google's id to ours. A Google-only user has no `passwordHash`; "Forgot password" is how they
+  get one. OAuth failures land back on `/signin?error=…` and are mapped to friendly copy there.
 - **Password reset** — `/forgot-password` → emailed 1 h single-use link → `/reset-password`;
   enumeration-safe (identical response either way); completing a reset also verifies the email.
 - **Tokens** ([`lib/auth-tokens.ts`](../../packages/web/lib/auth-tokens.ts)) — stored SHA-256-hashed

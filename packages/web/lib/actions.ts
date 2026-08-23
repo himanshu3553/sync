@@ -52,6 +52,12 @@ export async function signUpAction(_prev: string | undefined, formData: FormData
   return undefined;
 }
 
+/** Start the Google OAuth flow (throws a redirect to Google). Auth.js reconciles the identity
+ *  to our user on the way back — see auth.ts. */
+export async function signInWithGoogleAction(): Promise<void> {
+  await signIn('google', { redirectTo: '/dashboard' });
+}
+
 export async function signInAction(_prev: string | undefined, formData: FormData): Promise<string | undefined> {
   const parsed = creds.safeParse({ email: formData.get('email'), password: formData.get('password') });
   if (!parsed.success) return 'Enter a valid email and password.';

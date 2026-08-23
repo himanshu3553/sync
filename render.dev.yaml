@@ -102,6 +102,8 @@ services:
       - { key: AUTH_SECRET, sync: false }
       - { key: AUTH_URL, sync: false } # the deployed web URL (https://flowbuddy-dev-web.onrender.com)
       - { key: AUTH_TRUST_HOST, value: true }
+      - { key: AUTH_GOOGLE_ID, sync: false } # Google OAuth client (console.cloud.google.com)
+      - { key: AUTH_GOOGLE_SECRET, sync: false }
       # The Studio's ONE OpenAI use is re-indexing founder-edited step text at save time
       # (lib/edit-actions.ts) — end-user answers still all go through flowbuddy-dev-api (the
       # Copilot-page tester embeds the REAL widget). EMBED_MODEL must resolve identically on every
