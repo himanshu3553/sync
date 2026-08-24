@@ -238,7 +238,7 @@ Per the [suffix gotcha](#24-the-service-url-suffix-gotcha):
 
 ### 3.9 First deploy — what happens
 
-- Each Docker image builds (full `pnpm install` per image — a few minutes).
+- Each Docker image builds (full `pnpm install` per image — a few minutes). ⚠️ **The Docker build has NO Render env vars** — a Studio page Next can statically prerender bakes env-derived values (feature flags, keys) into HTML as `undefined`, and local dev won't catch it because env exists at build there. A page whose output depends on runtime env must render per-request (`export const dynamic = 'force-dynamic'` — how `/signup` keeps its Google button).
 - `flowbuddy-dev-api` start command runs `prisma migrate deploy` (creates all tables) **then** boots Fastify + the embedded worker. Success in the logs:
   ```
   All migrations have been successfully applied.
