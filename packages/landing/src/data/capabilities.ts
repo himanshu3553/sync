@@ -23,13 +23,13 @@ export const capabilities: Capability[] = [
   {
     key: 'guidance',
     slug: '/contextual-guidance',
-    title: 'Contextual Guidance',
+    title: 'Contextual Help & Guidance',
     short: 'Reads where your user is and highlights the next step in your UI.',
   },
   {
     key: 'walkthrough',
     slug: '/interactive-onboarding',
-    title: 'Interactive Onboarding',
+    title: 'Interactive User Onboarding',
     short: 'Guided walkthroughs that advance as your user completes each step.',
   },
   {

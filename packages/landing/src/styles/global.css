@@ -663,14 +663,50 @@ body {
   opacity: 1;
   transform: none;
 }
-.kb-tile .kb-dot {
-  transition:
-    background-color 380ms cubic-bezier(0.2, 0.7, 0.3, 1),
-    transform 380ms cubic-bezier(0.2, 0.7, 0.3, 1);
+/* Stage headers: pinned predecessors shrink when the next stage pins (the
+   section script toggles .is-shrunk). The shrunk row height (36px) IS the
+   per-header step in the --stage-top cascade, so stacked rows stay contiguous.
+   lg-only, like the stickiness itself. */
+.kb-stage-badge {
+  /* the gradient lives HERE, not inline — an inline style would beat the
+     .is-shrunk gray below */
+  background: linear-gradient(150deg, #4a63e8, #3a50dd);
 }
-.kb-tile.is-in .kb-dot,
-:root:not(:has([data-kb-reveal])) .kb-tile .kb-dot {
-  background-color: var(--color-brand-500);
+@media (min-width: 64rem) {
+  .kb-stage .kb-stage-row,
+  .kb-stage .kb-stage-badge,
+  .kb-stage .kb-stage-title {
+    transition:
+      height 240ms cubic-bezier(0.2, 0.7, 0.3, 1),
+      width 240ms cubic-bezier(0.2, 0.7, 0.3, 1),
+      margin 240ms cubic-bezier(0.2, 0.7, 0.3, 1),
+      font-size 240ms cubic-bezier(0.2, 0.7, 0.3, 1),
+      background-color 240ms cubic-bezier(0.2, 0.7, 0.3, 1),
+      color 240ms cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+  .kb-stage.is-shrunk .kb-stage-row {
+    height: 36px;
+  }
+  /* Past stages go quiet: gray disc, only the CURRENT stage keeps the blue. */
+  .kb-stage.is-shrunk .kb-stage-badge {
+    width: 24px;
+    height: 24px;
+    margin-left: -4px; /* keeps the disc centred on the 2px rail at left 7px */
+    font-size: 0.68rem;
+    background: var(--color-gray-200);
+    color: var(--color-gray-500);
+    box-shadow: none;
+  }
+  .kb-stage.is-shrunk .kb-stage-title {
+    font-size: 0.92rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kb-stage .kb-stage-row,
+  .kb-stage .kb-stage-badge,
+  .kb-stage .kb-stage-title {
+    transition: none;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   [data-kb-reveal] .kb-tile .kb-card,

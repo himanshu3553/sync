@@ -21,7 +21,15 @@ import { faqs } from '../data/faqs';
               </span>
             </summary>
             <p class="mt-3 max-w-[95%] text-[0.9rem] leading-relaxed text-gray-600">
-              {f.q === 'Does FlowBuddy work with AI agents?' ? (
+              {f.q === 'What is an application intelligence layer?' ? (
+                <>
+                  A layer that sits on top of your product and understands how the product itself
+                  works — its workflows, its concepts, and its screens. FlowBuddy builds that layer
+                  from one recorded walkthrough, you approve what goes into it, and the same
+                  approved layer then powers in-app answers, contextual help & guidance, interactive
+                  onboarding, and AI agent execution. <a href="/application-intelligence-layer" class="font-semibold text-brand-500 hover:underline">Read the full explanation</a>.
+                </>
+              ) : f.q === 'Does FlowBuddy work with AI agents?' ? (
                 <>
                   In two ways. Today, FlowBuddy’s own agent can carry out approved workflows inside
                   your product — in beta, off by default, and only ever with your user’s consent.

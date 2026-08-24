@@ -1,5 +1,5 @@
 ---
-// Capability page — Contextual Guidance: the assistant reads where the user is
+// Capability page — Contextual Help & Guidance: the assistant reads where the user is
 // and points at the next step instead of describing it.
 import Base from '../layouts/Base.astro';
 import CapabilityHero from '../components/CapabilityHero.astro';
@@ -59,14 +59,14 @@ const breadcrumbJsonLd = {
   '@type': 'BreadcrumbList',
   itemListElement: [
     { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://flowbuddyai.com/' },
-    { '@type': 'ListItem', position: 2, name: 'Contextual Guidance', item: 'https://flowbuddyai.com/contextual-guidance' },
+    { '@type': 'ListItem', position: 2, name: 'Contextual Help & Guidance', item: 'https://flowbuddyai.com/contextual-guidance' },
   ],
 };
 
 ---
 
 <Base
-  title="Contextual Guidance for your SaaS | FlowBuddy AI"
+  title="Contextual Help & Guidance for your SaaS | FlowBuddy AI"
   description="FlowBuddy reads which page your user is on and highlights their exact next step directly in your UI — context-aware guidance grounded only in workflows you approved. Live in 30 minutes."
   path="/contextual-guidance"
   jsonLd={[faqJsonLd, breadcrumbJsonLd]}
@@ -78,7 +78,7 @@ const breadcrumbJsonLd = {
     <Fragment slot="headline">
       Context-Aware<br />
       <span class="hero-ai">
-        Guidance<svg viewBox="0 0 24 24" aria-hidden="true" class="hero-ai-spark">
+        Help &amp; Guidance<svg viewBox="0 0 24 24" aria-hidden="true" class="hero-ai-spark">
           <defs>
             <linearGradient id="fb-sg-h1" x1="18%" y1="0%" x2="82%" y2="100%">
               <stop offset="0" stop-color="#4a63e8"></stop>

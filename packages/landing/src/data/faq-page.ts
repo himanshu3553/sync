@@ -28,7 +28,7 @@ export const faqCategories: FaqCategory[] = [
     items: [
       {
         q: 'What is FlowBuddy AI?',
-        a: 'FlowBuddy AI is an application intelligence layer for SaaS products. You show it your product once by recording a walkthrough; it learns how your software works — the workflows, the concepts, the screens — and you approve what it may use. That one approved layer, embedded with a single script tag, then powers an in-app AI assistant, contextual guidance, interactive onboarding, and, in beta, AI agent execution.',
+        a: 'FlowBuddy AI is an application intelligence layer for SaaS products. You show it your product once by recording a walkthrough; it learns how your software works — the workflows, the concepts, the screens — and you approve what it may use. That one approved layer, embedded with a single script tag, then powers an in-app AI assistant, contextual help & guidance, interactive user onboarding, and, in beta, AI agent execution.',
       },
       {
         q: 'What is an application intelligence layer?',

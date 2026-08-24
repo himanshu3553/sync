@@ -1,26 +1,29 @@
 ---
 import Icon from './Icon.astro';
 
+// The four outcome tiles, mapped to the lifecycle stages the section above
+// walks through: activation, adoption (fewer tickets), training cost, and the
+// always-current guarantee that makes the first three durable.
 const benefits = [
-  {
-    icon: 'inapp' as const,
-    title: 'In-app user assistance',
-    body: 'Give users help exactly where they need it, inside your product, on the page they’re already on. No searching through documentation. No waiting for support.',
-  },
-  {
-    icon: 'onboard' as const,
-    title: 'Faster onboarding',
-    body: 'New users learn your product from inside your product, at the exact moment they need it so they reach value on day one.',
-  },
   {
     icon: 'activation' as const,
     title: 'Higher activation',
-    body: 'Fewer users get stuck during setup or abandon a page they do not understand. More users reach the moment your product proves its value.',
+    body: 'New users are guided from inside your product and reach the moment it proves its value on day one — instead of getting stuck during setup or abandoning a page they don’t understand.',
   },
   {
     icon: 'tickets' as const,
     title: 'Fewer support tickets',
     body: 'The how-do-I questions answer themselves, so your team keeps its time for the conversations that actually need a human.',
+  },
+  {
+    icon: 'inapp' as const,
+    title: 'Lower content cost',
+    body: 'Stop hand-building tours, help articles, videos and SOPs in separate tools. One recording generates all of them — from the same approved source.',
+  },
+  {
+    icon: 'onboard' as const,
+    title: 'Always up to date',
+    body: 'When your product changes, re-record the flow once — and every surface updates together. No stale docs, no outdated videos, no tour pointing at a button that moved.',
   },
 ];
 ---

@@ -1,5 +1,5 @@
 ---
-// Capability page — Interactive Onboarding: guided walkthroughs inside the
+// Capability page — Interactive User Onboarding: guided walkthroughs inside the
 // product, advancing automatically as the user completes each step.
 import Base from '../layouts/Base.astro';
 import CapabilityHero from '../components/CapabilityHero.astro';
@@ -59,15 +59,15 @@ const breadcrumbJsonLd = {
   '@type': 'BreadcrumbList',
   itemListElement: [
     { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://flowbuddyai.com/' },
-    { '@type': 'ListItem', position: 2, name: 'Interactive Onboarding', item: 'https://flowbuddyai.com/interactive-onboarding' },
+    { '@type': 'ListItem', position: 2, name: 'Interactive User Onboarding', item: 'https://flowbuddyai.com/interactive-onboarding' },
   ],
 };
 
 ---
 
 <Base
-  title="Interactive Onboarding for your SaaS | FlowBuddy AI"
-  description="In-product interactive onboarding built from one recording: FlowBuddy guides whole tasks step by step in your UI and advances automatically as each step is completed. No tour builder."
+  title="Interactive User Onboarding for your SaaS | FlowBuddy AI"
+  description="In-product interactive user onboarding built from one recording: FlowBuddy guides whole tasks step by step in your UI and advances automatically as each step is completed. No tour builder."
   path="/interactive-onboarding"
   jsonLd={[faqJsonLd, breadcrumbJsonLd]}
 >
@@ -78,7 +78,7 @@ const breadcrumbJsonLd = {
     <Fragment slot="headline">
       Interactive<br />
       <span class="hero-ai">
-        Onboarding<svg viewBox="0 0 24 24" aria-hidden="true" class="hero-ai-spark">
+        User Onboarding<svg viewBox="0 0 24 24" aria-hidden="true" class="hero-ai-spark">
           <defs>
             <linearGradient id="fb-sg-h1" x1="18%" y1="0%" x2="82%" y2="100%">
               <stop offset="0" stop-color="#4a63e8"></stop>

@@ -9,7 +9,7 @@ const OUTCOMES = [
   },
   {
     icon: Footprints,
-    title: 'Interactive onboarding',
+    title: 'Interactive user onboarding',
     body: 'Step-by-step guidance for easy and fast user onboarding.',
   },
   {

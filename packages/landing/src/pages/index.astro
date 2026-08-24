@@ -1,7 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
 import Hero from '../components/Hero.astro';
-import LayerConcept from '../components/LayerConcept.astro';
 import HowItWorks from '../components/HowItWorks.astro';
 import KnowledgeBase from '../components/KnowledgeBase.astro';
 import Benefits from '../components/Benefits.astro';
@@ -21,13 +20,12 @@ const faqJsonLd = {
 ---
 
 <Base
-  title="FlowBuddy AI — the Application Intelligence Layer for your SaaS"
-  description="FlowBuddy learns how your SaaS works and turns it into an application intelligence layer — powering in-app AI assistance, contextual guidance, interactive onboarding, and AI agent execution. Record once, approve, live in 30 minutes."
+  title="FlowBuddy AI — Record your application once, onboard, guide and help every user."
+  description="Record your application once — FlowBuddy learns how it works and turns that knowledge into an in-app AI assistant, interactive walkthroughs, product videos and step-by-step guides, always in sync with your product. Live in 30 minutes."
   path="/"
   jsonLd={[faqJsonLd]}
 >
   <Hero />
-  <LayerConcept />
   <KnowledgeBase />
   <HowItWorks />
   <Benefits />

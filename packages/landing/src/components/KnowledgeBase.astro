@@ -5,16 +5,18 @@ import MockWalkthrough from './MockWalkthrough.astro';
 import MockAgent from './MockAgent.astro';
 import { capabilityByKey } from '../data/capabilities';
 
-// The whole product in one diagram: one recording on the left produces the
-// application-intelligence layer, and seven consumers on the right are fed by
-// it. On lg the left half PINS and the consumers arrive one per scroll beat —
-// the layer is the fixed thing on screen and the uses are what move, which is
-// the argument. The pinned card deliberately mirrors the hero pipeline's stage
-// 3, so the thing built up there is the thing pinned here.
+// The whole product in one diagram, told along the USER LIFECYCLE (founder
+// repositioning 2026-08-24): one recording on the left produces the product
+// knowledge, and the consumers on the right arrive in three journey stages —
+// Activate (new sign-ups) → Adopt (everyday use) → Train & self-serve
+// (ongoing). On lg the left half PINS and the consumers arrive one per scroll
+// beat — the knowledge is the fixed thing on screen and the uses are what
+// move, which is the argument. The pinned card deliberately mirrors the hero
+// pipeline's beat 2, so the thing built up there is the thing pinned here.
 //
 // Pacing is TWO numbers, and the second is the one that survives a content
 // change. `lg:min-h-[64vh]` sets the rhythm when a card is short; `lg:py-[4.5vh]`
-// holds the gap open when a card is TALLER than the slot — which the four live
+// holds the gap open when a card is TALLER than the slot — which the live
 // ones are, now that they carry a full capability with its mock. Drop the
 // padding and those cards butt straight into each other, because a min-height
 // stops doing anything the moment content exceeds it. The stacked layout needs
@@ -24,23 +26,57 @@ import { capabilityByKey } from '../data/capabilities';
 // not inset the bottom edge, or a peek smaller than that inset reveals nothing
 // and the reader sees an empty gap where the next consumer should be arriving.
 //
-// Copy guardrail (docs/product/landing-page.md §1): the three unbuilt consumers
-// carry a muted "Coming soon" pill, greyscale visuals, and are never written as
-// available. AI Agent Execution is live but in BETA — it carries a brand-tinted
-// "Beta" pill and its copy always says off-by-default + consented. /future owns
-// the fuller road-ahead argument — this links there.
+// Copy guardrail (docs/product/landing-page.md §1): AI Agent Execution is live
+// but in BETA — it carries a brand-tinted "Beta" pill and its copy always says
+// off-by-default + consented. Product Videos / SOPs / Help Portal are sold as
+// live ON THE PAGE (founder call 2026-08-24); the machine-readable surfaces
+// (featureList, llms.txt) deliberately do NOT list portal/SOPs as shipped —
+// engines repeat those claims without the page around them. Third-Party Agent
+// Access stays off this page entirely (direction-only, the interop rule);
+// /future and /application-intelligence-layer own that story.
+interface Stage {
+  n: number;
+  title: string;
+  when?: string;
+  problem?: string;
+}
+
 interface Consumer {
   key: string;
   title: string;
   body: string;
   bullets?: string[];
-  live: boolean;
   beta?: boolean;
-  /** Dedicated capability page (live consumers only). */
+  /** Dedicated capability page (where one exists). */
   href?: string;
+  /** Set on the FIRST consumer of a journey stage — renders the stage header. */
+  stage?: Stage;
 }
 
 const consumers: Consumer[] = [
+  {
+    key: 'walkthrough',
+    title: 'Interactive User Onboarding',
+    body: 'New users learn your product from inside your product. For any approved task the assistant runs a guided walkthrough — one step at a time, following their progress.',
+    bullets: [
+      'Guides whole tasks, step by step, inside your product',
+      'Advances automatically as the user completes each step',
+      'Keeps up across pages — it continues wherever the task leads',
+    ],
+    href: capabilityByKey.walkthrough.slug,
+    stage: { n: 1, title: 'Activate' },
+  },
+  {
+    key: 'guidance',
+    title: 'Contextual Help & Guidance',
+    body: 'When a user gets stuck, the assistant doesn’t just describe the fix but points at it. It reads where the user is and highlights their next step directly in your UI.',
+    bullets: [
+      'Unblocks stuck users on the spot',
+      'Knows which page the user is on',
+      'Highlights the exact next step, right in your interface',
+    ],
+    href: capabilityByKey.guidance.slug,
+  },
   {
     key: 'assistant',
     title: 'In-App AI Assistant',
@@ -50,32 +86,8 @@ const consumers: Consumer[] = [
       'Approved answers only and never guesses it',
       'Honest "I don’t know yet" when something isn’t covered',
     ],
-    live: true,
     href: capabilityByKey.assistant.slug,
-  },
-  {
-    key: 'guidance',
-    title: 'Contextual Guidance',
-    body: 'When a user gets stuck, the assistant doesn’t just describe the fix but points at it. It reads where the user is and highlights their next step directly in your UI.',
-    bullets: [
-      'Unblocks stuck users on the spot',
-      'Knows which page the user is on',
-      'Highlights the exact next step, right in your interface',
-    ],
-    live: true,
-    href: capabilityByKey.guidance.slug,
-  },
-  {
-    key: 'walkthrough',
-    title: 'Interactive Onboarding',
-    body: 'New users learn your product from inside your product. For any approved task the assistant runs a guided walkthrough — one step at a time, following their progress.',
-    bullets: [
-      'Guides whole tasks, step by step, inside your product',
-      'Advances automatically as the user completes each step',
-      'Keeps up across pages — it continues wherever the task leads',
-    ],
-    live: true,
-    href: capabilityByKey.walkthrough.slug,
+    stage: { n: 2, title: 'Adopt' },
   },
   {
     key: 'agent',
@@ -86,27 +98,39 @@ const consumers: Consumer[] = [
       'Narrated step by step — your user can stop it at any time',
       'Verifies the outcome before it says done',
     ],
-    live: true,
     beta: true,
     href: capabilityByKey.agent.slug,
   },
   {
-    key: 'portal',
-    title: 'Autogenerated Help Portal',
-    body: 'The same approved workflows, published as a searchable help site for your product.',
-    live: false,
+    key: 'videos',
+    title: 'Autogenerated Product Videos',
+    body: 'Every approved workflow becomes a branded, narrated product video — generated straight from your recording. Perfect for training, launches and your help content.',
+    bullets: [
+      'A narrated, branded video for every approved workflow',
+      'Built from your real product screens — no video editing',
+      'Refresh it any time your product changes',
+    ],
+    stage: { n: 3, title: 'Train & Self-serve' },
   },
   {
     key: 'sop',
-    title: 'SOP Generation',
-    body: 'Your workflows as clean step-by-step documents for training and operations.',
-    live: false,
+    title: 'Step-by-Step SOPs',
+    body: 'Your workflows as clean step-by-step documents — the SOPs your training and operations teams keep asking for, generated instead of written.',
+    bullets: [
+      'Clean numbered steps from your approved workflows',
+      'Ready for training manuals and operations handbooks',
+      'Stays in sync with the product you actually shipped',
+    ],
   },
   {
-    key: 'agents',
-    title: 'Third-Party Agent Access',
-    body: 'Outside AI agents — like Claude — reading your approved knowledge to use your product correctly.',
-    live: false,
+    key: 'portal',
+    title: 'Autogenerated Help Portal',
+    body: 'The same approved workflows, published as a searchable help portal — self-serve answers your users can browse, readable by humans and AI alike.',
+    bullets: [
+      'A searchable help site built from approved workflows',
+      'For your users — and for AI tools reading your docs',
+      'Updates when your knowledge does',
+    ],
   },
 ];
 
@@ -117,9 +141,9 @@ const paths: Record<string, string> = {
   guidance: 'M5 3l6 17 2.6-6.9L20.5 10z',
   walkthrough: 'M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01',
   agent: 'M13 2 3 14h7l-1 8 10-12h-7z',
+  videos: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z M10 8.5l5.5 3.5-5.5 3.5z',
   portal: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18m0 0c2.4 2.4 3.6 5.5 3.6 9s-1.2 6.6-3.6 9m0-18C9.6 5.4 8.4 8.5 8.4 12s1.2 6.6 3.6 9M3.5 9h17M3.5 15h17',
   sop: 'M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M9 13h6M9 17h4',
-  agents: 'M7 7h10v10H7zM10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2',
 };
 ---
 
@@ -138,23 +162,19 @@ const paths: Record<string, string> = {
 
   <div class="relative mx-auto max-w-[1140px] px-5 py-12 md:px-8 md:py-16">
     <div class="max-w-2xl">
-      <p class="eyebrow mb-4">One intelligence layer</p>
-      <h2 class="display-section">Record once. Power every surface.</h2>
+      <p class="eyebrow mb-4">The user lifecycle</p>
+      <h2 class="display-section">One recording, Every stage of the user journey.</h2>
       <p class="lead mt-4">
-        Record your product once. FlowBuddy learns your workflows, screens and key product concepts, 
-        reviewed and approved by you.
+        FlowBuddy turns your product recording into everything users need at every stage, from
+        activation help on day one to ongoing in-app help and training content like product
+        videos, step-by-step SOPs.
       </p>
     </div>
 
     <div class="mt-10 grid gap-7 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] lg:items-start lg:gap-14">
       <!-- Half one — pinned while the consumers scroll past it on lg. -->
       <div class="kb-pinned lg:sticky lg:top-[var(--kb-pin)] lg:self-start" style="--kb-pin: 6rem">
-        <p class="font-mono text-[0.68rem] font-bold uppercase tracking-widest">
-          <span class="text-brand-500">Step 1</span>
-          <span class="text-gray-300">·</span>
-          <span class="text-gray-400">Build it once</span>
-        </p>
-        <div class="relative mt-4">
+        <div class="relative">
         <div
           class="kb-anchor rounded-card px-6 py-6 shadow-primary"
           style="background: linear-gradient(150deg, #4a63e8, #3a50dd)"
@@ -169,7 +189,7 @@ const paths: Record<string, string> = {
               </svg>
             </span>
             <p class="text-[1.3rem] font-extrabold leading-tight tracking-tight text-white">
-              Application Intelligence
+              Your Product Knowledge
             </p>
           </div>
           <p class="mt-3 text-[0.88rem] font-semibold leading-relaxed text-white/80">
@@ -213,6 +233,13 @@ const paths: Record<string, string> = {
           </span>
         </div>
 
+        <p class="mt-4 text-[0.84rem] font-medium text-gray-500">
+          Under the hood, this is the
+          <a href="/application-intelligence-layer" class="font-semibold text-brand-500 hover:underline"
+            >Application Intelligence Layer</a
+          > of your SaaS.
+        </p>
+
         <!-- Only the stacked layout needs the pivot drawn; on lg the pinning says it. -->
         <div class="relative mt-7 flex items-center justify-center lg:hidden" aria-hidden="true">
           <span class="absolute h-14 w-px bg-gray-200"></span>
@@ -226,52 +253,68 @@ const paths: Record<string, string> = {
 
       <!-- Half two — one consumer per scroll beat, on a rail that fills as they arrive. -->
       <div>
-        <p class="font-mono text-[0.68rem] font-bold uppercase tracking-widest lg:pl-9">
-          <span class="text-brand-500">Step 2</span>
-          <span class="text-gray-300">·</span>
-          <span class="text-gray-400">Use it everywhere</span>
-        </p>
-        <ul class="relative mt-4">
+        <ul class="relative">
           <span class="absolute bottom-0 left-[7px] top-0 w-0.5 rounded-pill bg-gray-150" aria-hidden="true"></span>
           <span class="kb-rail-fill absolute left-[7px] top-0 w-0.5 rounded-pill" aria-hidden="true"></span>
           {
             consumers.map((c, i) => (
-              <li class={`kb-tile relative pb-6 pl-9 lg:flex lg:min-h-[64vh] lg:py-[4.5vh] ${i === 0 ? 'lg:items-start lg:pt-0' : 'lg:items-center'}`}>
-                <span class={`kb-dot absolute left-0 top-6 size-4 rounded-pill border-2 border-white bg-gray-200 shadow-card ${i === 0 ? '' : 'lg:top-1/2 lg:-translate-y-1/2'}`} aria-hidden="true" />
+              <>
+                {/* Stage header: a numbered node ON the journey line. On lg it is
+                    STICKY with a cascading top offset (below the 62px site header,
+                    +48px per already-pinned header), and its containing block is
+                    the whole rail <ul> — so each stage pins while its own cards
+                    scroll under it, stays put when the next stage pins beneath it,
+                    and the finished section shows ① ② ③ stacked. Pure CSS: no-JS /
+                    reduced-motion / crawlers get the complete list. The badge's
+                    -ml-2 centres its 32px disc on the 2px rail at left 7px. The
+                    problem line is NOT in here — it scrolls away with the stage's
+                    first card, or three pinned sentences would eat the viewport by
+                    stage 3. */}
+                {c.stage && (
+                  <li
+                    class="kb-stage relative z-20 lg:sticky lg:top-[var(--stage-top)]"
+                    style={`--stage-top: ${66 + (c.stage.n - 1) * 36}px`}
+                  >
+                    <div class="kb-stage-row flex items-center gap-3 pb-3 lg:h-12 lg:bg-white/90 lg:pb-0 lg:backdrop-blur-sm">
+                      <span
+                        class="kb-stage-badge -ml-2 grid size-8 shrink-0 place-items-center rounded-pill text-[0.85rem] font-extrabold text-white shadow-primary"
+                        aria-hidden="true"
+                      >
+                        {c.stage.n}
+                      </span>
+                      <p class="kb-stage-title min-w-0 text-[1.15rem] font-extrabold leading-snug tracking-tight text-ink">
+                        {c.stage.title}
+                        {c.stage.when && (
+                          <span class="font-semibold text-gray-400"> · {c.stage.when}</span>
+                        )}
+                      </p>
+                    </div>
+                  </li>
+                )}
+              <li class={`kb-tile relative pb-6 pl-9 lg:flex lg:min-h-[64vh] lg:py-[4.5vh] ${c.stage ? 'lg:items-start lg:pt-0' : 'lg:items-center'}`}>
+                <div class="w-full">
+                  {c.stage?.problem && (
+                    <p class="mb-3 text-[0.9rem] leading-snug text-gray-500">{c.stage.problem}</p>
+                  )}
                 <div
-                  class={`kb-card w-full rounded-card border p-5 md:p-6 ${
-                    c.live ? 'border-gray-100 bg-white shadow-card' : 'border-gray-150 bg-paper-2'
-                  }`}
+                  class="kb-card w-full rounded-card border border-gray-100 bg-white p-5 shadow-card md:p-6"
                 >
                   <div class="flex flex-col-reverse items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                     <div class="flex min-w-0 items-center gap-3">
-                      <span
-                        class={`grid size-10 shrink-0 place-items-center rounded-tile ${
-                          c.live ? 'bg-brand-50 text-brand-500' : 'bg-gray-100 text-gray-400'
-                        }`}
-                      >
+                      <span class="grid size-10 shrink-0 place-items-center rounded-tile bg-brand-50 text-brand-500">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
                           <path d={paths[c.key]} />
                         </svg>
                       </span>
                       {/* h3 because these tiles now carry the capability headings the
                           deleted Capabilities section used to hold. */}
-                      <h3
-                        class={`text-[1.15rem] font-bold leading-snug tracking-tight md:text-[1.3rem] ${
-                          c.live ? 'text-ink' : 'text-gray-500'
-                        }`}
-                      >
+                      <h3 class="text-[1.15rem] font-bold leading-snug tracking-tight text-ink md:text-[1.3rem]">
                         {c.title}
                       </h3>
                     </div>
                     {c.beta && (
                       <span class="shrink-0 rounded-pill border border-brand-200 bg-brand-50 px-2.5 py-1 font-mono text-[0.58rem] font-bold uppercase tracking-wider text-brand-600">
                         Beta
-                      </span>
-                    )}
-                    {!c.live && (
-                      <span class="shrink-0 rounded-pill border border-gray-150 bg-white px-2.5 py-1 font-mono text-[0.58rem] font-bold uppercase tracking-wider text-gray-500">
-                        Coming soon
                       </span>
                     )}
                   </div>
@@ -289,96 +332,72 @@ const paths: Record<string, string> = {
                     </ul>
                   )}
 
-                  {/* The four live consumers carry the real animated mocks;
-                      the unbuilt three keep a greyscale placeholder, so no picture
-                      on this page can read as a shipped screen. */}
-                  {c.live ? (
-                    <>
-                      <div class="mt-5">
-                        {c.key === 'assistant' && <MockAssistant />}
-                        {c.key === 'guidance' && <MockGuidance />}
-                        {c.key === 'walkthrough' && <MockWalkthrough />}
-                        {c.key === 'agent' && <MockAgent />}
-                      </div>
-                      {c.href && (
-                        <a
-                          href={c.href}
-                          class="mt-4 inline-flex items-center gap-1.5 text-[0.9rem] font-semibold text-brand-500 hover:underline"
-                        >
-                          Explore {c.title}
-                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M5 12h14M13 6l6 6-6 6" />
-                          </svg>
-                        </a>
-                      )}
-                    </>
-                  ) : (
-                    <div class="mt-5 rounded-tile border border-gray-150 bg-white p-3.5" aria-hidden="true">
-                    {c.key === 'portal' && (
-                      <div class="rounded-tile border border-gray-150 bg-paper-2 p-3">
-                        <div class="flex items-center gap-2 rounded-pill border border-gray-150 bg-white px-2.5 py-1.5">
-                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="text-gray-300">
-                            <circle cx="11" cy="11" r="7" />
-                            <path d="M20 20l-4-4" stroke-linecap="round" />
-                          </svg>
-                          <span class="block h-1.5 w-1/3 rounded-pill bg-gray-150" />
-                        </div>
-                        <div class="mt-2.5 space-y-1.5">
-                          {[0, 1, 2].map((i) => (
-                            <div class="flex items-center gap-2 rounded-[7px] border border-gray-150 bg-white px-2 py-2">
-                              <span class="size-1.5 shrink-0 rounded-pill bg-gray-200" />
-                              <span class={`block h-1.5 rounded-pill bg-gray-150 ${['w-3/5', 'w-4/5', 'w-2/5'][i]}`} />
-                              <span class="ml-auto text-[0.6rem] text-gray-300">›</span>
+                  {/* Visuals: the four capability mocks are the animated ones;
+                      videos / SOP / portal carry static branded previews (HTML on
+                      the tokens — never a fake screenshot). */}
+                  <div class="mt-5">
+                    {c.key === 'assistant' && <MockAssistant />}
+                    {c.key === 'guidance' && <MockGuidance />}
+                    {c.key === 'walkthrough' && <MockWalkthrough />}
+                    {c.key === 'agent' && <MockAgent />}
+
+                    {c.key === 'videos' && (
+                      <div class="rounded-tile border border-gray-150 bg-white p-3.5" aria-hidden="true">
+                        <div class="relative overflow-hidden rounded-tile border border-gray-150">
+                          {/* poster: a mini product screen, dimmed under the play control */}
+                          <div class="bg-paper-2 p-3">
+                            <div class="rounded-[7px] border border-gray-150 bg-white p-2.5">
+                              <p class="text-[0.6rem] font-bold text-ink">Invite teammate</p>
+                              <div class="mt-1.5 space-y-1.5">
+                                <span class="block h-1.5 w-3/5 rounded-pill bg-gray-150" />
+                                <span class="block h-1.5 w-2/5 rounded-pill bg-gray-150" />
+                                <span class="mt-1 inline-block rounded-[5px] px-2 py-1 text-[0.52rem] font-bold text-white" style="background: linear-gradient(180deg, #4a63e8, #3a50dd)">
+                                  Send invite
+                                </span>
+                              </div>
                             </div>
-                          ))}
+                          </div>
+                          <div class="absolute inset-0 grid place-items-center" style="background: rgba(20, 22, 31, 0.28)">
+                            <span class="grid size-10 place-items-center rounded-pill text-white shadow-primary" style="background: linear-gradient(150deg, #4a63e8, #3a50dd)">
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M8 5.5v13l11-6.5z" />
+                              </svg>
+                            </span>
+                          </div>
+                          <span class="absolute right-2 top-2 rounded-pill bg-white/90 px-1.5 py-0.5 font-mono text-[0.5rem] font-bold uppercase tracking-wider text-brand-600">
+                            Auto-generated
+                          </span>
+                        </div>
+                        <div class="mt-2.5">
+                          <div class="h-1 overflow-hidden rounded-pill bg-gray-150">
+                            <span class="block h-full w-1/3 rounded-pill" style="background: linear-gradient(90deg, #4a63e8, #3a50dd)" />
+                          </div>
+                          <div class="mt-1.5 flex items-center justify-between">
+                            <p class="text-[0.66rem] font-bold text-ink">How to invite a teammate</p>
+                            <span class="font-mono text-[0.56rem] font-semibold text-gray-400">0:42</span>
+                          </div>
                         </div>
                       </div>
                     )}
 
                     {c.key === 'sop' && (
-                      <div class="rounded-tile border border-gray-150 bg-white p-3">
-                        <div class="flex items-center justify-between border-b border-gray-100 pb-2">
-                          <span class="block h-1.5 w-1/3 rounded-pill bg-gray-200" />
-                          <span class="rounded-pill border border-gray-150 px-1.5 py-0.5 font-mono text-[0.5rem] font-bold uppercase tracking-wider text-gray-400">
-                            .docx
-                          </span>
-                        </div>
-                        <div class="mt-2.5 space-y-2">
-                          {[0, 1, 2].map((i) => (
-                            <div class="flex items-start gap-2">
-                              <span class="grid size-4 shrink-0 place-items-center rounded-pill bg-gray-100 font-mono text-[0.5rem] font-bold text-gray-500">
-                                {i + 1}
-                              </span>
-                              <span class="mt-1 flex-1 space-y-1">
-                                <span class="block h-1.5 w-full rounded-pill bg-gray-100" />
-                                <span class={`block h-1.5 rounded-pill bg-gray-100 ${['w-3/4', 'w-1/2', 'w-2/3'][i]}`} />
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {c.key === 'agents' && (
-                      <div class="rounded-tile border border-gray-150 bg-white p-3">
-                        <div class="flex items-center gap-2 border-b border-gray-100 pb-2">
-                          <span class="rounded-[6px] bg-gray-100 px-1.5 py-0.5 font-mono text-[0.52rem] font-bold uppercase tracking-wider text-gray-500">
-                            AI agent
-                          </span>
-                          <span class="text-[0.6rem] text-gray-300">→</span>
-                          <span class="rounded-[6px] bg-gray-100 px-1.5 py-0.5 font-mono text-[0.52rem] font-bold uppercase tracking-wider text-gray-500">
-                            Approved KB
-                          </span>
-                        </div>
-                        <div class="mt-2.5 space-y-1.5 font-mono text-[0.56rem] text-gray-400">
-                          <p>read: workflows[]</p>
-                          <div class="space-y-1.5">
-                            {[0, 1].map((i) => (
-                              <div class="flex items-center gap-2 rounded-[7px] border border-gray-150 bg-paper-2 px-2 py-1.5">
-                                <span class="size-1.5 shrink-0 rounded-pill bg-gray-200" />
-                                <span class={`block h-1.5 rounded-pill bg-gray-150 ${['w-1/2', 'w-2/3'][i]}`} />
-                                <span class="ml-auto rounded-pill border border-gray-150 px-1.5 text-[0.5rem] uppercase text-gray-400">
-                                  approved
+                      <div class="rounded-tile border border-gray-150 bg-white p-3.5" aria-hidden="true">
+                        <div class="rounded-tile border border-gray-150 bg-white p-3">
+                          <div class="flex items-center justify-between border-b border-gray-100 pb-2">
+                            <p class="text-[0.66rem] font-bold text-ink">Invite a teammate — SOP</p>
+                            <span class="rounded-pill border border-brand-100 bg-brand-50 px-1.5 py-0.5 font-mono text-[0.5rem] font-bold uppercase tracking-wider text-brand-600">
+                              .docx
+                            </span>
+                          </div>
+                          <div class="mt-2.5 space-y-2">
+                            {[0, 1, 2].map((i) => (
+                              <div class="flex items-start gap-2">
+                                <span class="grid size-4 shrink-0 place-items-center rounded-pill bg-brand-50 font-mono text-[0.5rem] font-bold text-brand-600">
+                                  {i + 1}
+                                </span>
+                                <span class="mt-1 flex-1 space-y-1">
+                                  <span class="block h-1.5 w-full rounded-pill bg-gray-100" />
+                                  <span class={`block h-1.5 rounded-pill bg-gray-100 ${['w-3/4', 'w-1/2', 'w-2/3'][i]}`} />
                                 </span>
                               </div>
                             ))}
@@ -386,10 +405,46 @@ const paths: Record<string, string> = {
                         </div>
                       </div>
                     )}
-                    </div>
+
+                    {c.key === 'portal' && (
+                      <div class="rounded-tile border border-gray-150 bg-white p-3.5" aria-hidden="true">
+                        <div class="rounded-tile border border-gray-150 bg-paper-2 p-3">
+                          <div class="flex items-center gap-2 rounded-pill border border-brand-100 bg-white px-2.5 py-1.5">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="text-brand-400">
+                              <circle cx="11" cy="11" r="7" />
+                              <path d="M20 20l-4-4" stroke-linecap="round" />
+                            </svg>
+                            <span class="text-[0.6rem] font-medium text-gray-400">How do I invite a teammate?</span>
+                          </div>
+                          <div class="mt-2.5 space-y-1.5">
+                            {[0, 1, 2].map((i) => (
+                              <div class="flex items-center gap-2 rounded-[7px] border border-gray-150 bg-white px-2 py-2">
+                                <span class="size-1.5 shrink-0 rounded-pill bg-brand-400" />
+                                <span class={`block h-1.5 rounded-pill bg-gray-150 ${['w-3/5', 'w-4/5', 'w-2/5'][i]}`} />
+                                <span class="ml-auto text-[0.6rem] text-brand-300">›</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {c.href && (
+                    <a
+                      href={c.href}
+                      class="mt-4 inline-flex items-center gap-1.5 text-[0.9rem] font-semibold text-brand-500 hover:underline"
+                    >
+                      Explore {c.title}
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 12h14M13 6l6 6-6 6" />
+                      </svg>
+                    </a>
                   )}
                 </div>
+                </div>
               </li>
+              </>
             ))
           }
         </ul>
@@ -397,10 +452,10 @@ const paths: Record<string, string> = {
     </div>
 
     <p class="mt-8 text-[0.86rem] leading-relaxed text-gray-500">
-      The first four are live today — AI Agent Execution is in beta and off by default. The rest
-      are in development — <a
+      Everything above is live today — AI Agent Execution is in beta and off by default. Curious
+      what’s next? <a
         href="/future"
-        class="font-semibold text-brand-500 hover:underline">see the road ahead</a
+        class="font-semibold text-brand-500 hover:underline">See the road ahead</a
       >.
     </p>
   </div>
@@ -428,6 +483,27 @@ const paths: Record<string, string> = {
     };
     setPin();
     window.addEventListener('resize', setPin);
+
+    // Pinned predecessors shrink: when stage n pins, every EARLIER stage header
+    // compacts into the 36px slot its sticky offset reserves (the --stage-top
+    // cascade and the .is-shrunk height in global.css are the same number — the
+    // rows stay contiguous). Detection: a sticky header is pinned exactly when
+    // its rect.top equals its computed sticky top. Below lg the headers aren't
+    // sticky (computed top is 'auto'), so every header stays full size.
+    const stages = Array.from(root.querySelectorAll('.kb-stage'));
+    const shrink = () => {
+      let last = -1;
+      stages.forEach((h, i) => {
+        const top = parseFloat(getComputedStyle(h).top);
+        if (!Number.isNaN(top) && h.getBoundingClientRect().top <= top + 1) last = i;
+      });
+      stages.forEach((h, i) => h.classList.toggle('is-shrunk', i < last));
+    };
+    if (stages.length) {
+      window.addEventListener('scroll', shrink, { passive: true });
+      window.addEventListener('resize', shrink);
+      shrink();
+    }
 
     if (!('IntersectionObserver' in window)) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;

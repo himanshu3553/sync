@@ -8,7 +8,11 @@ export interface Faq {
 export const faqs: Faq[] = [
   {
     q: 'What is an application intelligence layer?',
-    a: 'A layer that sits on top of your product and understands how the product itself works — its workflows, its concepts, and its screens. FlowBuddy builds that layer from one recorded walkthrough, you approve what goes into it, and the same approved layer then powers in-app answers, contextual guidance, interactive onboarding, and AI agent execution.',
+    a: 'A layer that sits on top of your product and understands how the product itself works — its workflows, its concepts, and its screens. FlowBuddy builds that layer from one recorded walkthrough, you approve what goes into it, and the same approved layer then powers in-app answers, contextual help & guidance, interactive user onboarding, and AI agent execution. Read the full explanation at flowbuddyai.com/application-intelligence-layer.',
+  },
+  {
+    q: 'What can one recording power?',
+    a: 'Your whole user lifecycle. One recorded walkthrough becomes interactive user onboarding and contextual help & guidance that activate new users, an in-app AI assistant for everyday help (with consented AI agent execution in beta), and training content generated from the same workflows — product videos and step-by-step guides. Everything reads from one approved knowledge layer, so it all stays in sync.',
   },
   {
     q: 'How long does setup really take?',
