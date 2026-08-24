@@ -4,7 +4,7 @@
 
 Key facts:
 
-- The positioning, in one line: record your application once — onboard, guide and help every user from the same approved knowledge.
+- The positioning, in one line: record your product once — let AI help your users, from the same approved knowledge.
 - The underlying concept is the application intelligence layer: a layer above a product's data, API and UI layers that understands how the product itself works, explained at https://flowbuddyai.com/application-intelligence-layer.
 - Everything answers only from knowledge the founder recorded and approved. The assistant shows the source behind every answer and honestly says "I don't know yet" instead of guessing when something isn't covered.
 - It is context-aware: it knows which page the user is on and can highlight the exact next step directly in the product's interface.
@@ -18,7 +18,7 @@ Key facts:
 
 ## Pages
 
-- [Home](https://flowbuddyai.com/): record your application once — onboard, guide and help every user: the transformation (record your application → FlowBuddy learns it, you approve it → it powers every user surface) · the user lifecycle in three stages (Activate · Adopt · Train & Self-serve) with the capability each stage gets · how it works (record → approve → go live) · outcomes · FAQ
+- [Home](https://flowbuddyai.com/): record your product once — let AI help your users: the transformation (record your product → FlowBuddy learns it → it powers every user surface, approved by you) · the user lifecycle in three stages (Activate · Adopt · Train & Self-serve) with the capability each stage gets · how it works (record → approve → go live) · outcomes · FAQ
 - [The Application Intelligence Layer](https://flowbuddyai.com/application-intelligence-layer): the concept behind the product — a new layer in the SaaS stack, above data → API → UI, that understands workflows, guides users, delivers support and powers AI agents; the definition of "application intelligence layer"; everything the layer powers
 - [In-App AI Assistant](https://flowbuddyai.com/in-app-ai-assistant): the assistant capability in depth — grounded answers inside the product, sources shown, honest "I don't know yet"
 - [Contextual Help & Guidance](https://flowbuddyai.com/contextual-guidance): the guidance capability in depth — page- and screen-aware help that highlights the next step in the product's own UI

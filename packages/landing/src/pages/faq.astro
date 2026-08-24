@@ -67,14 +67,14 @@ const breadcrumbJsonLd = {
         {
           faqCategories.map((c) => (
             <div id={c.id} class="scroll-mt-24">
-              <h2 class="text-[clamp(1.3rem,2.4vw,1.7rem)] font-extrabold tracking-tight text-ink">
+              <h2 class="text-[clamp(1.3rem,2.4vw,1.7rem)] font-medium tracking-tight text-ink">
                 {c.title}
               </h2>
               <div class="mt-6 space-y-3">
                 {c.items.map((f) => (
                   <details class="faq-item rounded-list border border-gray-100 bg-white px-6 py-4 shadow-card">
                     <summary>
-                      <h3 class="flex items-center justify-between gap-4 text-[0.98rem] font-bold text-ink">
+                      <h3 class="flex items-center justify-between gap-4 text-[0.98rem] font-medium text-ink">
                         {f.q}
                         <span class="faq-icon grid size-6 shrink-0 place-items-center rounded-pill bg-brand-50 text-brand-500">
                           <svg

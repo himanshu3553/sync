@@ -273,7 +273,7 @@ const paths: Record<string, string> = {
                 {c.stage && (
                   <li
                     class="kb-stage relative z-20 lg:sticky lg:top-[var(--stage-top)]"
-                    style={`--stage-top: ${66 + (c.stage.n - 1) * 36}px`}
+                    style={`--stage-top: ${78 + (c.stage.n - 1) * 36}px`}
                   >
                     <div class="kb-stage-row flex items-center gap-3 pb-3 lg:h-12 lg:bg-white/90 lg:pb-0 lg:backdrop-blur-sm">
                       <span
@@ -282,7 +282,7 @@ const paths: Record<string, string> = {
                       >
                         {c.stage.n}
                       </span>
-                      <p class="kb-stage-title min-w-0 text-[1.15rem] font-extrabold leading-snug tracking-tight text-ink">
+                      <p class="kb-stage-title min-w-0 text-[1.15rem] font-medium leading-snug tracking-tight text-ink">
                         {c.stage.title}
                         {c.stage.when && (
                           <span class="font-semibold text-gray-400"> · {c.stage.when}</span>
@@ -308,7 +308,7 @@ const paths: Record<string, string> = {
                       </span>
                       {/* h3 because these tiles now carry the capability headings the
                           deleted Capabilities section used to hold. */}
-                      <h3 class="text-[1.15rem] font-bold leading-snug tracking-tight text-ink md:text-[1.3rem]">
+                      <h3 class="text-[1.15rem] font-medium leading-snug tracking-tight text-ink md:text-[1.3rem]">
                         {c.title}
                       </h3>
                     </div>

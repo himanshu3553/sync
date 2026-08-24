@@ -2,16 +2,19 @@
 import Logo from './Logo.astro';
 ---
 
-<header class="sticky top-0 z-40 border-b border-gray-100 bg-white/90 backdrop-blur">
-  <div class="mx-auto flex h-[62px] max-w-[1140px] items-center justify-between px-5 md:px-8">
+<!-- Flat at the very top of the page — no line, no surface, the content sits
+     straight on the hero. Once scrolled it becomes a floating rounded capsule
+     (white surface, hairline border, soft shadow, detached from the top edge).
+     The MARKUP is the scrolled capsule and the script only adds .is-top, so
+     no-JS still gets a legible header over any section. -->
+<header class="fb-header sticky top-0 z-40 px-3 pt-2.5 md:px-4" data-header>
+  <div
+    class="fb-headbar mx-auto flex h-[62px] max-w-[1140px] items-center justify-between rounded-pill border border-gray-150 bg-white/95 px-5 shadow-card backdrop-blur md:px-8"
+  >
     <a href="/" class="flex items-center gap-2.5" aria-label="FlowBuddy AI home">
       <Logo size={30} />
       <span class="text-[1.05rem] font-extrabold tracking-tight text-ink">FlowBuddy AI</span>
     </a>
-    <nav class="hidden items-center gap-7 text-[0.9rem] font-semibold text-gray-600 md:flex">
-      <a href="/#knowledge-base" class="transition-colors hover:text-ink">Use cases</a>
-      <a href="/#how-it-works" class="transition-colors hover:text-ink">How it works</a>
-    </nav>
     <div class="flex items-center gap-3">
       <a
         href="https://app.flowbuddyai.com"
@@ -26,3 +29,13 @@ import Logo from './Logo.astro';
     </div>
   </div>
 </header>
+
+<script is:inline>
+  (() => {
+    const header = document.querySelector('[data-header]');
+    if (!header) return;
+    const paint = () => header.classList.toggle('is-top', window.scrollY < 8);
+    paint();
+    addEventListener('scroll', paint, { passive: true });
+  })();
+</script>
