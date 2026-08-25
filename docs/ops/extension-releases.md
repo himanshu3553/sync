@@ -9,7 +9,18 @@
 
 ---
 
-## v0.9.0 — 🧰 **BUILT 2026-08-11, not yet packaged/submitted** — the evidence-capture build
+## v0.9.1 — 📦 **PACKAGED 2026-08-25, awaiting submission** — the new-brand-icon build
+
+**Icons only — no code change.** The new FlowBuddy F-mark (from `docs/design_system/assets/FlowBuddyAI_logo.png`, shipped across the product 2026-08-23) replaces the old gradient-square icons in the toolbar, the store listing, and the popup/permission pages. Nothing else differs from v0.9.0.
+
+- **Content:** `icons/icon-{16,32,48,128}.png` regenerated (mark on a white rounded tile); the popup and permission pages render `icons/icon-48.png` where they drew a CSS gradient square.
+- **Compatibility:** none — no API, header, or capture change of any kind. No release ordering.
+- **Permissions:** **unchanged.**
+- **Baked targets:** unchanged — `https://app.flowbuddyai.com` (primary) + `https://flowbuddy-dev-web.onrender.com` + `http://localhost:3000` (bridge only).
+- **Artifact:** `packages/extension/flowbuddy-recorder-0.9.1.zip` (gitignored, 119 KB, 24 files) — built `NODE_ENV=production`. Verified before zipping: manifest `0.9.1`, all three bridge origins, `__DEV__` stripped, popup bakes the prod Studio, `X-FlowBuddy-Upload-Id` still sent, new icons in the bundle.
+- **Status:** **packaged, awaiting upload to the Web Store.** While in review, v0.9.0 stays live and fully compatible.
+
+## v0.9.0 — ✅ **LIVE on the Chrome Web Store** (submitted 2026-08-12) — the evidence-capture build
 
 **The capture half of execution contracts** ([`execution-contracts.md`](../build/execution-contracts.md) EC-9) — three additive fields that make the evidence layer richer; every consumer fails open on older manifests, so there is no ordering constraint in either direction.
 
@@ -19,9 +30,9 @@
   - **Post-action settle for input commits (DOM only, no post screenshot):** typing then pausing/Enter now captures the field's after-state — inline validation, an enabling submit — which the evidence layer turns into fill-step expectations. A blur caused by clicking the next control supersedes the input's watcher in favor of the click's, the same discard rule consecutive clicks have always had.
 - **Compatibility:** none required — all three fields are additive (`checked` on the event, `shot: false` on an internal message, one more captured attribute); the API schema accepts and older manifests keep working everywhere. No release ordering against any API deploy.
 - **Permissions:** **unchanged.**
-- **Status:** code-complete on `dev`, `src/manifest.json` bumped to `0.9.0`. **Not packaged, not submitted — queued behind v0.8.0, which is still in review** (one review cycle at a time). Package + submit via the checklist below when v0.8.0 resolves.
+- **Status:** **live.** Submitted 2026-08-12, superseding v0.8.0 while it was still in review — v0.8.0 was withdrawn and **never went live**; its fill-flush content shipped inside this build.
 
-## v0.8.0 — ⏳ **SUBMITTED 2026-08-09, in review** — the fill-flush build
+## v0.8.0 — ⚰️ **SUPERSEDED in review, never live** (submitted 2026-08-09) — the fill-flush build
 
 **The full-page-nav capture fix** — a typed value can no longer be lost to the navigation that follows it.
 
@@ -34,9 +45,9 @@
 - **Permissions:** **unchanged.**
 - **Baked targets:** unchanged from v0.7.0 — `https://app.flowbuddyai.com` (primary — the popup's Connect target) + `https://flowbuddy-dev-web.onrender.com` + `http://localhost:3000` (bridge only).
 - **Artifact:** `packages/extension/flowbuddy-recorder-0.8.0.zip` (gitignored, 108 KB, 24 files) — built `NODE_ENV=production`. Verified before zipping: manifest `0.8.0`, all three bridge origins, `__DEV__` stripped, popup bakes the prod Studio, `X-FlowBuddy-Upload-Id` still sent, and the sweep's values still pass the sensitive-field mask.
-- **Status:** **uploaded and submitted for review 2026-08-09** (same listing, extension ID unchanged). No permissions delta, so it should take the fast path. **v0.7.0 stays live until this is approved**, and it remains the build the API requires — nothing here is a compatibility floor, so there is no deploy to sequence against it.
+- **Status:** **superseded while in review by v0.9.0 (2026-08-12) and never went live** — this build's fill-flush content shipped inside v0.9.0.
 
-## v0.7.0 — ✅ **LIVE on the Chrome Web Store** (packaged 2026-07-28) — the build production requires
+## v0.7.0 — ✅ superseded by v0.9.0 (packaged 2026-07-28) — the build production requires as its FLOOR
 
 **The upload-identity release** — one recording now has one identity, and its artifacts upload while you record instead of in one lump at Stop.
 
