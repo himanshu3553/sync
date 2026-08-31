@@ -165,6 +165,15 @@ model Workspace {
   // "Demo video" card and refuses the generate action; it gates nothing end-user-facing (the
   // feature never serves end users). Default OFF while the feature proves itself.
   demoVideosEnabled     Boolean  @default(false)
+  // Help portal (portal track slice 2) — the workspace's PUBLIC help site at /help/<slug>.
+  // `portalEnabled` is the master switch: OFF (the default — nothing is public by default) serves
+  // 404 for the whole portal regardless of per-workflow publications. `portalAcceptedAt` records
+  // when the founder acknowledged that publishing makes their recorded SCREENSHOTS public (the
+  // pixel-PII posture until OCR/blur redaction lands — portal.md V2·P5); the enable action refuses
+  // to switch on without stamping it. Set once, kept across disable/enable (the acknowledgment is
+  // history, like AgentAcceptance — the switch is the state).
+  portalEnabled         Boolean   @default(false)
+  portalAcceptedAt      DateTime?
 
   owner            User              @relation("WorkspaceOwner", fields: [ownerId], references: [id])
   tokens           ApiToken[]
@@ -180,6 +189,7 @@ model Workspace {
   executionRuns    ExecutionRun[]
   agentAcceptances AgentAcceptance[]
   demoVideos       DemoVideo[]
+  portalPublications PortalPublication[]
 }
 
 model ApiToken {
@@ -313,6 +323,7 @@ model Workflow {
   approval      CopilotApproval?
   executionPlan ExecutionPlan?
   demoVideo     DemoVideo?
+  portalPublication PortalPublication?
 
   @@unique([sourceId, segmentIndex])
   @@index([workspaceId])
@@ -561,6 +572,34 @@ model ExecutionPlan {
   contract    Json?
   createdAt   DateTime @default(now())
   compiledAt  DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workflow  Workflow  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+}
+
+model PortalPublication {
+  // Portal track slice 2 (portal.md V2·P0, minimal): one row = one workflow PUBLISHED to the
+  // workspace's public help portal. The portal half of per-audience approval, fully INDEPENDENT of
+  // `CopilotApproval` — the decoupling guardrail: ONE KB → per-audience approval → {Copilot, Portal}.
+  // Keyed on the durable WORKFLOW identity for the same reason approvals are: a position would let
+  // a re-split walk a publication onto content nobody chose to make public.
+  //
+  // Absence = not on the portal, and unpublish DELETES the row — unlike approvals there is no
+  // analytics history or undo hanging off a publication (yet), so absence stays the single
+  // "not published" state. Fail-closed serving lives in the READER, not here: a detached workflow
+  // (`Workflow.segmentIndex IS NULL` — content no longer verified) or one with no step items
+  // serves nothing even while this row exists, the same direction `needs_review` fails approvals.
+  id            String   @id @default(cuid())
+  workspaceId   String
+  workflowId    String   @unique
+  // Founder-assigned portal category — PRESENTATION data (index/sidebar grouping at render time),
+  // never KB structure. Free text on purpose (no vocabulary table until the portal track's
+  // authoring depth needs one); null renders under "General".
+  category      String?
+  publishedById String?
+  createdAt     DateTime @default(now())
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   workflow  Workflow  @relation(fields: [workflowId], references: [id], onDelete: Cascade)

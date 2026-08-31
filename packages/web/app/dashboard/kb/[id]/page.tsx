@@ -29,8 +29,13 @@ import { WorkflowApprovalControl } from '@/components/dashboard/workflow-approva
 import { WorkflowContentCard } from '@/components/dashboard/workflow-content-card';
 import { WorkflowExecutionControl } from '@/components/dashboard/workflow-execution-control';
 import { DemoVideoCard } from '@/components/dashboard/demo-video-card';
+import { SopCard } from '@/components/dashboard/sop-card';
 import { displayRoute } from '@flowbuddy/shared/route-pattern';
 import { planSummary, type ExecutionStep } from '@flowbuddy/synthesis/execution-plan';
+import { renderAgentSop } from '@flowbuddy/synthesis/sop';
+import { loadWorkflowSop } from '@/lib/sop';
+import { PortalPublishControl } from '@/components/dashboard/portal-publish-control';
+import { articleSlug, portalBaseUrl } from '@/lib/portal';
 
 export const dynamic = 'force-dynamic';
 
@@ -129,11 +134,11 @@ export default async function KbWorkflowPage({
   // screenshots' default: a video is watched and downloaded, and a playback session outliving its
   // URL fails mid-scrub.
   const demoVideosOn = ctx.workspace.demoVideosEnabled;
-  // The page's sections. The video tab only exists where the feature is on; an unknown or
-  // unavailable `?tab=` falls back to the details.
+  // The page's sections. The tab is unconditional since the SOP half exists for every workspace;
+  // only the video CARD inside it stays behind the flag. An unknown `?tab=` falls back to details.
   const tabs = [
     { key: 'details', label: 'Workflow Details' },
-    ...(demoVideosOn ? [{ key: 'video', label: 'Video/SOP' }] : []),
+    { key: 'video', label: 'Video/SOP' },
     { key: 'analytics', label: 'Analytics' },
   ];
   const tab = tabs.some((t) => t.key === rawTab) ? (rawTab as string) : 'details';
@@ -165,9 +170,40 @@ export default async function KbWorkflowPage({
   const demoVideoStale =
     demoVideo?.status === 'ready' && lastEditMs > 0 && lastEditMs > demoVideo.updatedAt.getTime();
 
+  // The SOP exports — compiled on request from the live workflow (lib/sop.ts), so unlike the
+  // video there is nothing stored and nothing to go stale. The card previews the agent rendering.
+  const sop =
+    tab === 'video' && workflow && ready && selected != null
+      ? await loadWorkflowSop(ctx.workspace.id, source.id, selected)
+      : null;
+  const agentSopMarkdown = sop ? renderAgentSop(sop.model) : null;
+
   const stats =
     selected != null
       ? await getWorkflowCopilotStats(ctx.workspace.id, source.id, selected)
+      : null;
+
+  // Help portal (portal track slice 2) — this workflow's publication + the workspace's existing
+  // category names as suggestions. Independent of copilot approval by design.
+  const portalPublication = workflow
+    ? await prisma.portalPublication.findUnique({
+        where: { workflowId: workflow.id },
+        select: { category: true },
+      })
+    : null;
+  const portalCategories = (
+    await prisma.portalPublication.findMany({
+      where: { workspaceId: ctx.workspace.id, category: { not: null } },
+      select: { category: true },
+      distinct: ['category'],
+    })
+  )
+    .map((p) => p.category)
+    .filter((c): c is string => c != null)
+    .sort();
+  const portalArticleUrl =
+    workflow && portalPublication && ctx.workspace.portalEnabled
+      ? `${portalBaseUrl()}/help/${ctx.workspace.slug}/${articleSlug(workflowTitle, workflow.id)}`
       : null;
 
   // Approval state (the P1-M5 trust gate) — the copilot only cites APPROVED workflows, so the
@@ -271,31 +307,54 @@ export default async function KbWorkflowPage({
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
           {tab === 'video' ? (
           <div className="min-w-0 space-y-5">
-            {workflow && ready && demoVideosOn ? (
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm">Demo video</CardTitle>
-                  <CardDescription className="text-xs">
-                    A polished workflow video generated from the recorded steps with voiceover, zooms
-                    and captions
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <DemoVideoCard
-                    workflowId={workflow.id}
-                    workflowTitle={workflowTitle}
-                    status={demoVideo?.status ?? null}
-                    videoUrl={demoVideoUrl}
-                    durationMs={demoVideo?.durationMs ?? null}
-                    error={demoVideo?.error ?? null}
-                    stale={demoVideoStale}
-                  />
-                </CardContent>
-              </Card>
+            {workflow && ready ? (
+              <>
+                {demoVideosOn && (
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm">Demo video</CardTitle>
+                      <CardDescription className="text-xs">
+                        A polished workflow video generated from the recorded steps with voiceover,
+                        zooms and captions
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <DemoVideoCard
+                        workflowId={workflow.id}
+                        workflowTitle={workflowTitle}
+                        status={demoVideo?.status ?? null}
+                        videoUrl={demoVideoUrl}
+                        durationMs={demoVideo?.durationMs ?? null}
+                        error={demoVideo?.error ?? null}
+                        stale={demoVideoStale}
+                      />
+                    </CardContent>
+                  </Card>
+                )}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm">SOP</CardTitle>
+                    <CardDescription className="text-xs">
+                      Export this workflow as a standard operating procedure — a step-by-step guide
+                      for people, and a manual AI agents can operate your product from
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {agentSopMarkdown && selected != null ? (
+                      <SopCard sourceId={source.id} wf={selected} agentMarkdown={agentSopMarkdown} />
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        This workflow has no steps to export yet.
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              </>
             ) : (
               <Card>
                 <CardContent className="py-10 text-center text-sm text-muted-foreground">
-                  Knowledge Base is still building — the video can be generated once it is ready.
+                  Knowledge Base is still building — the video and SOP can be generated once it is
+                  ready.
                 </CardContent>
               </Card>
             )}
@@ -462,6 +521,29 @@ export default async function KbWorkflowPage({
                     executeState={approval?.executeState ?? null}
                     summary={runSummary}
                     checks={runChecks}
+                    ready={ready}
+                  />
+                </CardContent>
+              </Card>
+            )}
+
+            {workflow && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm">Help portal</CardTitle>
+                  <CardDescription className="text-xs">
+                    Publish this workflow as a public help article on your portal
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <PortalPublishControl
+                    workflowId={workflow.id}
+                    segmentTitle={workflowTitle}
+                    published={portalPublication != null}
+                    category={portalPublication?.category ?? null}
+                    categorySuggestions={portalCategories}
+                    articleUrl={portalArticleUrl}
+                    portalEnabled={ctx.workspace.portalEnabled}
                     ready={ready}
                   />
                 </CardContent>

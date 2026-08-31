@@ -120,6 +120,9 @@ export type { StepEvidence } from './step-evidence';
 export { buildScreens } from './screen-runs';
 export { buildDemoVideo } from './video'; // demo-video derivation (render worker)
 export type { DemoVideoInput, DemoVideoResult } from './video';
+export { compileSop, renderAgentSop, renderHumanSop, sopImageName } from './sop'; // SOP derivation
+export type { SopInput, SopModel, SopStep, SopStepSource } from './sop';
+export { renderSopStepImage } from './sop-image';
 // Note: buildWorkflowKB + WorkflowKB/DistilledWorkflow/BuildWorkflowKBInput are declared+exported below (live copilot path).
 
 // ---------- Module 2 (LIVE copilot path): capture → distilled workflow KB ----------

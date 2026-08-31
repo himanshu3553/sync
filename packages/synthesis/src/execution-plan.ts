@@ -177,6 +177,23 @@ export function stableStringify(value: unknown): string {
 
 const INPUT_TAGS = new Set(['input', 'textarea', 'select']);
 
+/** The one event → verb mapping, shared by the plan compiler and the SOP compiler (sop.ts).
+ *  Null = an event kind the acting layer has no verb for (scroll, hover…) — the plan compiler
+ *  turns that into an eligibility failure; the SOP renders the step without an action tag. */
+export function eventVerb(ev: CapturedEvent): ExecutionVerb | null {
+  const attrs = ev.target?.attributes ?? {};
+  const tag = (ev.target?.tag ?? '').toLowerCase();
+  const inputType = (attrs['type'] ?? '').toLowerCase();
+  if (ev.type === 'click' || ev.type === 'submit') return 'click';
+  if (ev.type === 'input') {
+    if (inputType === 'checkbox' || inputType === 'radio') return 'check';
+    if (tag === 'select') return 'select';
+    return 'fill';
+  }
+  if (ev.type === 'nav') return 'navigate';
+  return null;
+}
+
 function urlOrigin(url: string | undefined): string | null {
   if (!url) return null;
   try {
@@ -186,7 +203,10 @@ function urlOrigin(url: string | undefined): string | null {
   }
 }
 
-function slotFor(ev: CapturedEvent): ExecutionInputSlot {
+/** What the executor (or an exported SOP) must ask the principal for at an input step. Exported for
+ *  the SOP compiler (sop.ts), the second consumer — the label is scrubbed here because it reaches
+ *  end-users in prompts and outside agents in exports. */
+export function slotFor(ev: CapturedEvent): ExecutionInputSlot {
   const attrs = ev.target?.attributes ?? {};
   const raw = ev.target?.accessibleName || attrs['placeholder'] || attrs['name'] || '';
   const label = redactText(raw).slice(0, LABEL_MAX) || 'this field';
@@ -197,7 +217,9 @@ function slotFor(ev: CapturedEvent): ExecutionInputSlot {
   return { label, sensitive };
 }
 
-function isDestructive(ev: CapturedEvent): boolean {
+/** Exported for the SOP compiler — an exported manual flags the same confirm-first moments a run
+ *  pauses on, from the same rule, so the two can never disagree about what is destructive. */
+export function isDestructive(ev: CapturedEvent): boolean {
   if (ev.type === 'submit') return true;
   const attrs = ev.target?.attributes ?? {};
   if ((attrs['type'] ?? '').toLowerCase() === 'submit') return true;
@@ -284,17 +306,10 @@ export function compileExecutionPlan(input: {
     }
 
     const attrs = ev.target?.attributes ?? {};
-    const tag = (ev.target?.tag ?? '').toLowerCase();
     const inputType = (attrs['type'] ?? '').toLowerCase();
 
-    let verb: ExecutionVerb;
-    if (ev.type === 'click' || ev.type === 'submit') verb = 'click';
-    else if (ev.type === 'input') {
-      if (inputType === 'checkbox' || inputType === 'radio') verb = 'check';
-      else if (tag === 'select') verb = 'select';
-      else verb = 'fill';
-    } else if (ev.type === 'nav') verb = 'navigate';
-    else {
+    const verb = eventVerb(ev);
+    if (verb === null) {
       issues.push({
         step: index,
         code: 'unsupported-action',
